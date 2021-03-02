@@ -1,0 +1,5 @@
+[build]
+    functions = "./functions"
+
+[template.environment]
+    DAILY_API_KEY = "Replace with API key"
