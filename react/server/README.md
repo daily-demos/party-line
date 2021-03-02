@@ -4,9 +4,9 @@ Just kidding, it's serverless ;)
 
 There are two functions here, designed to be deployed as [Netlify functions](https://www.netlify.com/products/functions/)
 
-You can deploy to your account via the deploy button below:
+You can deploy to your account via the deploy button below (including the React app):
 
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/audio-only)
+[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/party-line)
 
 You will be prompted to add your API key, which you can get from the [Developers](https://dashboard.daily.co/developers) section of the Dashboard. Sign up for a free account if you don't have one already.
 
