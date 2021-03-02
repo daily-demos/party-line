@@ -1,0 +1,10 @@
+[build]
+    # we put server/functions inside react so we can do a deploy button for both 
+    # netlify only allows a single deploy button (and related toml)
+    functions = "react/server/functions"
+    
+    # react and subfolders are the only parts that can be netlify deployed it is our base
+    base = "react/"
+
+[template.environment]
+    DAILY_API_KEY = "Replace with API key"
