@@ -1,0 +1,160 @@
+import SwiftUI
+
+struct ContentView: View {
+    @State
+    private var client: Client? = nil
+
+    @State
+    private var firstName: String = ""
+
+    @State
+    private var lastName: String = ""
+
+    @State
+    private var roomName: String = ""
+
+    var roomIsPresented: Binding<Bool> {
+        self.$client.mappedToBool()
+    }
+
+    private var headerView: some View {
+        HeaderView()
+    }
+
+    private var firstNameView: some View {
+        VStack(alignment: .leading, spacing: 15.0) {
+            Text("First name")
+                .bold()
+            TextField("Enter first name", text: self.$firstName)
+                .autocapitalization(.words)
+        }
+    }
+
+    private var lastNameView: some View {
+        VStack(alignment: .leading, spacing: 15.0) {
+            Text("Last name")
+                .bold()
+            TextField("Enter last name", text: self.$lastName)
+                .autocapitalization(.words)
+        }
+    }
+
+    private var roomNameView: some View {
+        return VStack(alignment: .leading, spacing: 15.0) {
+            Text("Join Code")
+                .bold()
+            TextField("Enter join code", text: self.$roomName)
+                .autocapitalization(/*@START_MENU_TOKEN@*/.none/*@END_MENU_TOKEN@*/)
+            Text("Enter a join code to join an existing room or leave empty to create and join a new room.")
+                .font(.footnote)
+                .lineLimit(2)
+                .fixedSize(
+                    horizontal: false,
+                    vertical: true
+                )
+        }
+    }
+
+    private var buttonTitle: String {
+        if self.roomName.isEmpty {
+            return "Create and join room"
+        } else {
+            return "Join room"
+        }
+    }
+
+    private var signinButton: some View {
+        return Button(action: self.signIn) {
+            Text(self.buttonTitle)
+                .bold()
+                .foregroundColor(self.firstName.isEmpty ? .secondary : .primary)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.Daily.accentColor)
+                .cornerRadius(10.0)
+        }
+        .disabled(self.firstName.isEmpty)
+    }
+
+    private var learnMoreView: some View {
+        LearnMoreView()
+    }
+
+    private var formView: some View {
+        VStack(alignment: .leading, spacing: 30.0) {
+            Text("Get started")
+                .font(.title2)
+                .bold()
+            self.firstNameView
+            self.lastNameView
+            self.roomNameView
+            self.signinButton
+            self.learnMoreView
+        }
+        .textFieldStyle(RoundedBorderTextFieldStyle())
+        .disableAutocorrection(true)
+    }
+
+    var body: some View {
+        ZStack(alignment: Alignment(horizontal: .center, vertical: .top)) {
+            Color.Daily.backgroundColor
+                .ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 50.0) {
+                self.headerView
+                self.formView
+            }
+            .padding(30)
+        }
+        .fullScreenCover(
+            isPresented: self.roomIsPresented,
+            onDismiss: self.signOut
+        ) {
+            if let client = self.client {
+                RoomView(client: client)
+            } else {
+                Text("No session")
+            }
+        }
+    }
+
+    func signIn() {
+        guard !self.firstName.isEmpty else {
+            return
+        }
+
+        let roomName = (self.roomName.isEmpty) ? nil : self.roomName
+
+        let role: Participant.Role = (self.roomName.isEmpty) ? .moderator : .listener
+
+        let userName: String
+
+        switch (self.firstName, self.lastName) {
+        case (firstName, ""):
+            userName = "\(firstName)_\(role.rawValue)"
+        case (firstName, lastName):
+            userName = "\(firstName) \(lastName)_\(role.rawValue)"
+        case _:
+            fatalError("Unreachable.")
+        }
+
+        let serverURL = Client.demoServerURL
+
+        self.client = Client(
+            userName: userName,
+            roomName: roomName,
+            serverURL: serverURL
+        )
+    }
+
+    func signOut() {
+        self.client = nil
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .background(Color.Daily.backgroundColor)
+            .preferredColorScheme(.light)
+    }
+}

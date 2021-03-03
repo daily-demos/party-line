@@ -118,7 +118,7 @@ Related tickets:
         async function createRoomAsync({ }) {
             console.log('[CREATING ROOM]');
 
-            let res = await fetch('https://audio-only-server.netlify.app/.netlify/functions/room', {
+            let res = await fetch('https://daily-party-line.netlify.app/.netlify/functions/room', {
                 method: 'POST'
             });
             let room = await res.json();
@@ -144,7 +144,7 @@ Related tickets:
         async function createTokenAsync({ roomName }) {
             console.log('[CREATING TOKEN]');
 
-            let res = await fetch('https://audio-only-server.netlify.app/.netlify/functions/token', {
+            let res = await fetch('https://daily-party-line.netlify.app/.netlify/functions/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -263,8 +263,7 @@ Related tickets:
 
         // Toggles the microphone.
         function setMicrophoneEnabled(microphoneEnabled) {
-            let currentAudio = call.participants().local.audio;
-            call.setLocalAudio(flag);
+            call.setLocalAudio(microphoneEnabled);
         }
 
         // Toggles the raised hand.
