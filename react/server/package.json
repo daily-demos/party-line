@@ -1,0 +1,25 @@
+{
+  "name": "audio-only-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "prettify": "prettier --write \"./**/*.{js,css,html,md}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daily-demos/audio-only-server.git"
+  },
+  "author": "philmillman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daily-demos/audio-only-server/issues"
+  },
+  "homepage": "https://github.com/daily-demos/audio-only-server#readme",
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  },
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
