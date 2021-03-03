@@ -30,7 +30,7 @@ export const CallProvider = ({ children }) => {
   const createRoom = async (roomName) => {
     if (roomName) return roomName;
     const response = await fetch(
-      "https://audio-only-server.netlify.app/.netlify/functions/room",
+      "https://daily-party-line.netlify.app/.netlify/functions/room",
       {
         method: "POST",
       }
@@ -45,7 +45,7 @@ export const CallProvider = ({ children }) => {
       setError("Eep! We could not create a token");
     }
     const response = await fetch(
-      "https://audio-only-server.netlify.app/.netlify/functions/token",
+      "https://daily-party-line.netlify.app/.netlify/functions/token",
       {
         method: "POST",
         body: JSON.stringify({ properties: { room_name: roomName } }),
