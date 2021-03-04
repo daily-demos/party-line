@@ -59,6 +59,9 @@ captures/
 .externalNativeBuild
 .cxx/
 
+# Android studio serialized cache file
+.idea/caches/build_file_checksums.ser
+
 # Google Services (e.g. APIs or Firebase)
 # google-services.json
 
