@@ -16,7 +16,7 @@ Once the project is loaded and gradle sync is complete, connect your device. Mak
 
 ## Running on an Emulator
 
-If you created an emulator with avd manager, you can select it from the "Available" devices menu and hit Run. Once the emulator is running, make sure  microphone support is enabled like the image below
+If you created an emulator with avd manager, you can select it from the "Available" devices menu and hit Run. Once the emulator is running, make sure microphone support is enabled like the image below
 
 <img src="https://user-images.githubusercontent.com/885084/109444441-eb10a200-7a45-11eb-9068-8a9179ab467e.png" width="35%">
 
@@ -26,4 +26,4 @@ Running the app on an emulator on a Linux machine works out-of-the-box as long a
 
 ## Testing
 
-To add more participants to your call, you can take advantage of the React demo currently hosted at [https://audio-only-react.netlify.app/](https://audio-only-react.netlify.app/).
+To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
