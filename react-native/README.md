@@ -1,4 +1,4 @@
-# Party line: An audio-only demo for React Native
+# Party line: an audio-only demo for React Native
 
 ## Built by and with [Daily](https://docs.daily.co/reference#using-the-react-native-daily-js-library)
 
@@ -8,8 +8,8 @@ This app is built using the React Native CLI.
 
 To run locally:
 
-- clone this repo locally
-- run the following
+- Clone this repo locally
+- Run the following
 
 ```
 npm i
@@ -25,7 +25,7 @@ Connect your device and run the following:
 npx react-native run-android
 ```
 
-Alternative, to run in Android Studio, open the `android` directory in Android Studio, make space your device is selected in the AVD Manager as the target device, and click the `Run` button.
+Alternatively, to run in Android Studio, open the `android` directory in Android Studio, make sure your device is selected in the AVD Manager as the target device, and click the `Run` button.
 
 ### Testing on an iOS device
 
@@ -38,7 +38,7 @@ _Note:_ The first time you run the app on an iPhone you will need to add the app
 
 ## Testing
 
-To add more participants to your call, you can take advantage of the React demo currently hosted at [https://audio-only-react.netlify.app/](https://audio-only-react.netlify.app/).
+To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
 
 ## Additional links:
 

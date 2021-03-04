@@ -1,12 +1,11 @@
 <html>
-
-<head>
+  <head>
     <title>party-line single file hack</title>
     <meta charset="UTF-8" />
     <script src="https://unpkg.com/@daily-co/daily-js"></script>
-</head>
+  </head>
 
-<!--
+  <!--
 PSA: This file actually belongs to the iOS demo and is entirely unrelated to the react demo.
 We simply have it piggy back on the react deployment as it needs to be hosted (for now; see below).
 
@@ -41,526 +40,534 @@ Related tickets:
 
 -->
 
-<body onload="main()">
-
+  <body onload="main()">
     <!-- the good stuff -->
 
     <script>
-        // ---- mutable globals ----
+      // ---- mutable globals ----
 
-        let call, oldConsole, oldOnError;
-        let audioElementsBySessionId = {};
+      let call, oldConsole, oldOnError;
+      let audioElementsBySessionId = {};
 
-        // Role tags.
-        const ROLE_MODERATOR_TAG = 'MOD';
-        const ROLE_SPEAKER_TAG = 'SPK';
-        const ROLE_LISTENER_TAG = 'LST';
+      // Role tags.
+      const ROLE_MODERATOR_TAG = 'MOD';
+      const ROLE_SPEAKER_TAG = 'SPK';
+      const ROLE_LISTENER_TAG = 'LST';
 
-        // App messages.
-        const MSG_MAKE_MODERATOR = 'make-moderator';
-        const MSG_MAKE_SPEAKER = 'make-speaker';
-        const MSG_MAKE_LISTENER = 'make-listener';
-        const MSG_FORCE_EJECT = 'force-eject';
+      // App messages.
+      const MSG_MAKE_MODERATOR = 'make-moderator';
+      const MSG_MAKE_SPEAKER = 'make-speaker';
+      const MSG_MAKE_LISTENER = 'make-listener';
+      const MSG_FORCE_EJECT = 'force-eject';
 
-        // The app's entry point.
-        function main() {
-            swizzleConsole();
-            swizzleOnError();
+      // The app's entry point.
+      function main() {
+        swizzleConsole();
+        swizzleOnError();
+      }
+
+      // This is not strictly necessary, but helps while debugging:
+      function swizzleConsole() {
+        if (oldConsole != undefined) {
+          return;
         }
 
-        // This is not strictly necessary, but helps while debugging:
-        function swizzleConsole() {
-            if (oldConsole != undefined) {
-                return;
-            }
+        oldConsole = window.console;
 
-            oldConsole = window.console;
+        window.console = (function (oldConsole) {
+          function redirect(lvl) {
+            return function (msg) {
+              postNativeConsoleMessage(lvl, msg);
+              oldConsole[lvl](msg);
+            };
+          }
+          return {
+            ...oldConsole,
+            log: redirect('log'),
+            info: redirect('info'),
+            warn: redirect('warn'),
+            error: redirect('error'),
+          };
+        })(window.console);
+      }
 
-            window.console = (function (oldConsole) {
-                function redirect(lvl) {
-                    return function (msg) {
-                        postNativeConsoleMessage(lvl, msg);
-                        oldConsole[lvl](msg);
-                    };
-                }
-                return {
-                    ...oldConsole,
-                    log: redirect("log"),
-                    info: redirect("info"),
-                    warn: redirect("warn"),
-                    error: redirect("error"),
-                };
-            })(window.console);
+      // This is not strictly necessary, but helps while debugging:
+      function swizzleOnError() {
+        if (oldOnError != undefined) {
+          return;
         }
 
-        // This is not strictly necessary, but helps while debugging:
-        function swizzleOnError() {
-            if (oldOnError != undefined) {
-                return;
-            }
+        oldOnError = window.onerror;
 
-            oldOnError = window.onerror;
+        window.onerror = (function (msg, url, line, column, error) {
+          return function (msg) {
+            postNativeErrorMessage(msg, url, line, column, error);
+            oldOnError(msg, url, line, column, error);
+          };
+        })(window.onerror);
+      }
 
-            window.onerror = (function (msg, url, line, column, error) {
-                return function (msg) {
-                    postNativeErrorMessage(msg, url, line, column, error);
-                    oldOnError(msg, url, line, column, error);
-                };
-            })(window.onerror);
+      // ---- room and token creation ----
+
+      // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
+      function createRoomNonBlocking({}) {
+        setTimeout(function () {
+          createRoomAsync({});
+        }, 0);
+      }
+
+      // Creates a room on the demo's associated account.
+      async function createRoomAsync({}) {
+        console.log('[CREATING ROOM]');
+
+        let res = await fetch(
+          'https://partyline.daily.co/.netlify/functions/room',
+          {
+            method: 'POST',
+          }
+        );
+        let room = await res.json();
+
+        console.log('[CREATED ROOM]', room);
+
+        postNativeEventMessage({
+          action: 'demo-created-room',
+          room: room,
+        });
+
+        return room;
+      }
+
+      // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
+      function createTokenNonBlocking({ roomName }) {
+        setTimeout(function () {
+          createTokenAsync({ roomName });
+        }, 0);
+      }
+
+      // Requests a token for a given room (required to become a moderator).
+      async function createTokenAsync({ roomName }) {
+        console.log('[CREATING TOKEN]');
+
+        let res = await fetch(
+          'https://daily-party-line.netlify.app/.netlify/functions/token',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              properties: {
+                room_name: roomName,
+              },
+            }),
+          }
+        );
+        let token = await res.json();
+
+        console.log('[CREATED TOKEN]', token);
+
+        postNativeEventMessage({
+          action: 'demo-created-token',
+          token: token,
+        });
+
+        return token;
+      }
+
+      // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
+      function createAndJoinRoomNonBlocking({ userName }) {
+        setTimeout(function () {
+          createAndJoinRoomAsync({ userName });
+        }, 0);
+      }
+
+      // Creates a room and joins it as the owner.
+      async function createAndJoinRoomAsync({ userName }) {
+        console.log('[CREATING & JOINING ROOM]');
+
+        let roomData = await createRoomAsync({});
+
+        let roomUrl = roomData.url;
+        let token = roomData.token;
+
+        await joinRoomAsync({ userName, roomUrl, token });
+      }
+
+      // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
+      function joinRoomNonBlocking({ userName, roomUrl, token }) {
+        setTimeout(function () {
+          joinRoomAsync({ userName, roomUrl, token });
+        }, 0);
+      }
+
+      // Joines a room as listener.
+      async function joinRoomAsync({ userName, roomUrl, token }) {
+        console.log('[JOINING ROOM]');
+
+        let tag = ROLE_LISTENER_TAG;
+
+        if (token != undefined) {
+          tag = ROLE_MODERATOR_TAG;
         }
 
-        // ---- room and token creation ----
+        token = token ?? '';
 
-        // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
-        function createRoomNonBlocking({ }) {
-            setTimeout(function () {
-                createRoomAsync({});
-            }, 0);
+        userName = setRoleTagInUserName(userName, tag);
+
+        if (call != undefined) {
+          await call.leave();
+        } else {
+          call = DailyIframe.createCallObject({
+            audioSource: true, // start with audio on to get mic permission from user at start
+            videoSource: false,
+            dailyConfig: {
+              experimentalChromeVideoMuteLightOff: true,
+            },
+          });
+
+          window.call = call;
+
+          call.on('joined-meeting', handleJoinedMeeting);
+
+          call.on('error', handleError);
+
+          call.on('participant-joined', handleParticipantJoined);
+          call.on('participant-updated', handleParticipantUpdated);
+          call.on('participant-left', handleParticipantLeft);
+          call.on('app-message', handleAppMessage);
+
+          call.on('track-started', handleTrackStarted);
+          call.on('track-stopped', handleTrackStopped);
         }
 
-        // Creates a room on the demo's associated account.
-        async function createRoomAsync({ }) {
-            console.log('[CREATING ROOM]');
+        await call.join({ url: roomUrl, userName, token });
 
-            let res = await fetch('https://daily-party-line.netlify.app/.netlify/functions/room', {
-                method: 'POST'
-            });
-            let room = await res.json();
+        // now mute, so everyone joining is muted by default
+        call.setLocalAudio(false);
 
-            console.log('[CREATED ROOM]', room);
+        let room = await call.room();
 
-            postNativeEventMessage({
-                action: 'demo-created-room',
-                room: room,
-            });
+        postNativeEventMessage({
+          action: 'demo-joined-room',
+          room: room,
+        });
+      }
 
-            return room;
+      // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
+      function leaveRoomNonBlocking({}) {
+        setTimeout(function () {
+          leaveRoomAsync({});
+        }, 0);
+      }
+
+      // Leaves the current room.
+      async function leaveRoomAsync({}) {
+        console.log('[LEAVING ROOM]');
+        await call.leave();
+      }
+
+      // ---- user controls ----
+
+      // Toggles the microphone.
+      function setMicrophoneEnabled(microphoneEnabled) {
+        call.setLocalAudio(microphoneEnabled);
+      }
+
+      // Toggles the raised hand.
+      function setHandRaised(handRaised) {
+        let participant = call.participants().local;
+
+        let userName = participant.user_name.replace(/^✋ /, '');
+
+        if (handRaised) {
+          userName = `✋ ${userName}`;
         }
 
-        // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
-        function createTokenNonBlocking({ roomName }) {
-            setTimeout(function () {
-                createTokenAsync({ roomName });
-            }, 0);
+        setUserName(userName);
+      }
+
+      // Sets the username.
+      function setUserName(userName) {
+        call.setUserName(userName);
+      }
+
+      // ---- moderator controls ----
+
+      // Mutes the participant associated with the given session id.
+      function muteParticipant(sessionId) {
+        call.updateParticipant(sessionId, { setAudio: false });
+      }
+
+      // ejects the participant associated with the given session id.
+      function ejectParticipant(sessionId) {
+        call.sendAppMessage({ msg: MSG_FORCE_EJECT }, sessionId);
+      }
+
+      // Makes the participant associated with the given session id a moderator.
+      function makeModerator(sessionId) {
+        setRole(sessionId, ROLE_MODERATOR_TAG);
+      }
+
+      // Makes the participant associated with the given session id a speaker.
+      function makeSpeaker(sessionId) {
+        setRole(sessionId, ROLE_SPEAKER_TAG);
+      }
+
+      // Makes the participant associated with the given session id a listener.
+      function makeListener(sessionId) {
+        setRole(sessionId, ROLE_LISTENER_TAG);
+      }
+
+      // Sets the role of the participant associated with the given session id.
+      function setRole(sessionId, roleTag) {
+        let participant = call.participants()[sessionId];
+
+        if (participant == undefined) {
+          return;
         }
 
-        // Requests a token for a given room (required to become a moderator).
-        async function createTokenAsync({ roomName }) {
-            console.log('[CREATING TOKEN]');
+        let userName = participant.name;
+        let id = participant.sessionId;
 
-            let res = await fetch('https://daily-party-line.netlify.app/.netlify/functions/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    properties: {
-                        room_name: roomName
-                    }
-                })
-            });
-            let token = await res.json();
+        let msg;
 
-            console.log('[CREATED TOKEN]', token);
-
-            postNativeEventMessage({
-                action: 'demo-created-token',
-                token: token,
-            });
-
-            return token;
+        switch (roleTag) {
+          case ROLE_MODERATOR_TAG:
+            msg = MSG_MAKE_MODERATOR;
+            break;
+          case ROLE_SPEAKER_TAG:
+            msg = MSG_MAKE_SPEAKER;
+            break;
+          case ROLE_LISTENER_TAG:
+            msg = MSG_MAKE_LISTENER;
+            break;
         }
 
-        // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
-        function createAndJoinRoomNonBlocking({ userName }) {
-            setTimeout(function () {
-                createAndJoinRoomAsync({ userName });
-            }, 0);
+        call.sendAppMessage({ userName, id, msg }, sessionId);
+      }
+
+      // Prepares the participant for becoming a moderator.
+      async function becomeModerator() {
+        console.log('[MAKING MODERATOR]');
+
+        let userName = call.participants().local.user_name;
+        let roomUrl = call.properties.url;
+
+        let room = await call.room();
+
+        await call.leave();
+
+        let tokenData = await createTokenAsync({ roomName: room.name });
+        let token = tokenData.token;
+
+        await joinRoomAsync({ userName, roomUrl, token });
+      }
+
+      // Prepares the participant for becoming a speaker.
+      function becomeSpeaker() {
+        console.log('[MAKING SPEAKER]');
+
+        let userName = call.participants().local.user_name;
+        userName = setRoleTagInUserName(userName, ROLE_SPEAKER_TAG);
+
+        call.setUserName(userName);
+      }
+
+      // Prepares the participant for becoming a listener.
+      function becomeListener() {
+        console.log('[MAKING LISTENER]');
+
+        let userName = call.participants().local.user_name;
+        userName = setRoleTagInUserName(userName, ROLE_LISTENER_TAG);
+
+        call.setUserName(userName);
+        call.setLocalAudio(false);
+      }
+
+      // Sets/Updates the role tag for a given username.
+      function setRoleTagInUserName(userName, tag) {
+        userName = userName.replace(/_(LST|SPK|MOD)$/, '');
+        return `${userName}_${tag}`;
+      }
+
+      // Starts playing a track.
+      function startTrack(sessionId, track) {
+        // sanity check to make sure this is an audio track
+        if (!(track && track.kind === 'audio')) {
+          return;
         }
 
-        // Creates a room and joins it as the owner.
-        async function createAndJoinRoomAsync({ userName }) {
-            console.log('[CREATING & JOINING ROOM]');
+        let audioElement = document.createElement('audio');
 
-            let roomData = await createRoomAsync({});
+        audioElement.autoplay = true;
+        audioElement.setAttribute('playsinline', '');
 
-            let roomUrl = roomData.url;
-            let token = roomData.token;
+        audioElement.srcObject = new MediaStream([track]);
 
-            await joinRoomAsync({ userName, roomUrl, token });
+        document.body.appendChild(audioElement);
+
+        audioElement.play();
+
+        audioElementsBySessionId[sessionId] = audioElement;
+      }
+
+      // Stops playing a track.
+      function stopTrack(sessionId) {
+        let audioElement = audioElementsBySessionId[sessionId];
+
+        if (audioElement != undefined) {
+          audioElement.remove();
+          audioElement = null;
+          audioElementsBySessionId.delete(sessionId);
+        }
+      }
+
+      // ---- call properties ----
+
+      // Retrieves the room's current participants.
+      function participants() {
+        let participants = call.participants();
+        return JSON.stringify(participants);
+      }
+
+      // ---- event handlers ----
+
+      // Responds to Daily's "joined-meeting" events.
+      function handleJoinedMeeting(evt) {
+        console.log('[JOINED MEETING]');
+        console.log(evt);
+
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "error" events.
+      function handleError(evt) {
+        console.log('[ERROR]');
+        console.log(evt);
+
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "participant-joined" events.
+      function handleParticipantJoined(evt) {
+        console.log('[PARTICIPANT JOINED]');
+        console.log(evt);
+
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "participant-updated" events.
+      function handleParticipantUpdated(evt) {
+        console.log('[PARTICIPANT UPDATED]');
+        console.log(evt);
+
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "participant-left" events.
+      function handleParticipantLeft(evt) {
+        console.log('[PARTICIPANT LEFT]');
+        console.log(evt);
+
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "app-message" events.
+      async function handleAppMessage(evt) {
+        console.log('[APP MESSAGE]');
+        console.log(evt);
+
+        try {
+          switch (evt.data.msg) {
+            case MSG_MAKE_MODERATOR:
+              await becomeModerator();
+              break;
+            case MSG_MAKE_SPEAKER:
+              becomeSpeaker();
+              break;
+            case MSG_MAKE_LISTENER:
+              becomeListener();
+              break;
+          }
+        } catch (e) {
+          console.error(e);
         }
 
-        // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
-        function joinRoomNonBlocking({ userName, roomUrl, token }) {
-            setTimeout(function () {
-                joinRoomAsync({ userName, roomUrl, token });
-            }, 0);
+        postNativeEventMessage(evt);
+      }
+
+      // Responds to Daily's "track-started" events.
+      function handleTrackStarted(evt) {
+        console.log('[TRACK STARTED]');
+        console.log(evt);
+
+        // don't play the local audio track (echo!)
+        if (evt.participant.local) {
+          return;
         }
 
-        // Joines a room as listener.
-        async function joinRoomAsync({ userName, roomUrl, token }) {
-            console.log('[JOINING ROOM]');
+        startTrack(evt.participant.sessionId, evt.track);
+      }
 
-            let tag = ROLE_LISTENER_TAG;
+      // Responds to Daily's "track-stopped" events.
+      function handleTrackStopped(evt) {
+        console.log('[TRACK STOPPED]');
+        console.log(evt);
 
-            if (token != undefined) {
-                tag = ROLE_MODERATOR_TAG;
-            }
+        stopTrack(evt.participant.sessionId);
+      }
 
-            token = token ?? '';
+      // ---- native bridge ----
 
-            userName = setRoleTagInUserName(userName, tag);
-
-            if (call != undefined) {
-                await call.leave();
-            } else {
-                call = DailyIframe.createCallObject({
-                    audioSource: true, // start with audio on to get mic permission from user at start
-                    videoSource: false,
-                    dailyConfig: {
-                        experimentalChromeVideoMuteLightOff: true,
-                    },
-                });
-
-                window.call = call;
-
-                call.on('joined-meeting', handleJoinedMeeting);
-
-                call.on('error', handleError);
-
-                call.on('participant-joined', handleParticipantJoined);
-                call.on('participant-updated', handleParticipantUpdated);
-                call.on('participant-left', handleParticipantLeft);
-                call.on('app-message', handleAppMessage);
-
-                call.on('track-started', handleTrackStarted);
-                call.on('track-stopped', handleTrackStopped);
-            }
-
-            await call.join({ url: roomUrl, userName, token });
-
-            // now mute, so everyone joining is muted by default
-            call.setLocalAudio(false);
-
-            let room = await call.room();
-
-            postNativeEventMessage({
-                action: 'demo-joined-room',
-                room: room,
-            });
+      // Posts an "event" message to the native app.
+      function postNativeEventMessage(evt) {
+        if (window.webkit == undefined) {
+          return;
         }
-
-        // Non-blocking sync wrapper as WBWebKit doesn't like calling async functions directly.
-        function leaveRoomNonBlocking({ }) {
-            setTimeout(function () {
-                leaveRoomAsync({});
-            }, 0);
+        let messageHandler = window.webkit.messageHandlers.events;
+        if (messageHandler == undefined) {
+          return;
         }
+        messageHandler.postMessage(JSON.stringify(evt));
+      }
 
-        // Leaves the current room.
-        async function leaveRoomAsync({ }) {
-            console.log('[LEAVING ROOM]');
-            await call.leave();
+      // Posts an "console" message to the native app.
+      function postNativeConsoleMessage(lvl, msg) {
+        if (window.webkit == undefined) {
+          return;
         }
-
-        // ---- user controls ----
-
-        // Toggles the microphone.
-        function setMicrophoneEnabled(microphoneEnabled) {
-            call.setLocalAudio(microphoneEnabled);
+        let messageHandler = window.webkit.messageHandlers.console;
+        if (messageHandler == undefined) {
+          return;
         }
+        messageHandler.postMessage(
+          JSON.stringify({
+            level: lvl,
+            content: msg,
+          })
+        );
+      }
 
-        // Toggles the raised hand.
-        function setHandRaised(handRaised) {
-            let participant = call.participants().local;
-
-            let userName = participant.user_name.replace(/^✋ /, '');
-
-            if (handRaised) {
-                userName = `✋ ${userName}`;
-            }
-
-            setUserName(userName);
+      // Posts an "error" message to the native app.
+      function postNativeErrorMessage(msg, url, line, column, error) {
+        if (window.webkit == undefined) {
+          return;
         }
-
-        // Sets the username.
-        function setUserName(userName) {
-            call.setUserName(userName);
+        let messageHandler = window.webkit.messageHandlers.errors;
+        if (messageHandler == undefined) {
+          return;
         }
-
-        // ---- moderator controls ----
-
-        // Mutes the participant associated with the given session id.
-        function muteParticipant(sessionId) {
-            call.updateParticipant(sessionId, { setAudio: false });
-        }
-
-        // ejects the participant associated with the given session id.
-        function ejectParticipant(sessionId) {
-            call.sendAppMessage({ msg: MSG_FORCE_EJECT }, sessionId);
-        }
-
-        // Makes the participant associated with the given session id a moderator.
-        function makeModerator(sessionId) {
-            setRole(sessionId, ROLE_MODERATOR_TAG);
-        }
-
-        // Makes the participant associated with the given session id a speaker.
-        function makeSpeaker(sessionId) {
-            setRole(sessionId, ROLE_SPEAKER_TAG);
-        }
-
-        // Makes the participant associated with the given session id a listener.
-        function makeListener(sessionId) {
-            setRole(sessionId, ROLE_LISTENER_TAG);
-        }
-
-        // Sets the role of the participant associated with the given session id.
-        function setRole(sessionId, roleTag) {
-            let participant = call.participants()[sessionId];
-
-            if (participant == undefined) {
-                return;
-            }
-
-            let userName = participant.name;
-            let id = participant.sessionId;
-
-            let msg;
-
-            switch (roleTag) {
-                case ROLE_MODERATOR_TAG:
-                    msg = MSG_MAKE_MODERATOR;
-                    break;
-                case ROLE_SPEAKER_TAG:
-                    msg = MSG_MAKE_SPEAKER;
-                    break;
-                case ROLE_LISTENER_TAG:
-                    msg = MSG_MAKE_LISTENER;
-                    break;
-            }
-
-            call.sendAppMessage({ userName, id, msg }, sessionId);
-        }
-
-        // Prepares the participant for becoming a moderator.
-        async function becomeModerator() {
-            console.log('[MAKING MODERATOR]');
-
-            let userName = call.participants().local.user_name;
-            let roomUrl = call.properties.url;
-
-            let room = await call.room();
-
-            await call.leave();
-
-            let tokenData = await createTokenAsync({ roomName: room.name });
-            let token = tokenData.token;
-
-            await joinRoomAsync({ userName, roomUrl, token });
-        }
-
-        // Prepares the participant for becoming a speaker.
-        function becomeSpeaker() {
-            console.log('[MAKING SPEAKER]');
-
-            let userName = call.participants().local.user_name;
-            userName = setRoleTagInUserName(userName, ROLE_SPEAKER_TAG);
-
-            call.setUserName(userName);
-        }
-
-        // Prepares the participant for becoming a listener.
-        function becomeListener() {
-            console.log('[MAKING LISTENER]');
-
-            let userName = call.participants().local.user_name;
-            userName = setRoleTagInUserName(userName, ROLE_LISTENER_TAG);
-
-            call.setUserName(userName);
-            call.setLocalAudio(false);
-        }
-
-        // Sets/Updates the role tag for a given username.
-        function setRoleTagInUserName(userName, tag) {
-            userName = userName.replace(/_(LST|SPK|MOD)$/, '');
-            return `${userName}_${tag}`;
-        }
-
-        // Starts playing a track.
-        function startTrack(sessionId, track) {
-            // sanity check to make sure this is an audio track
-            if (!(track && track.kind === 'audio')) {
-                return;
-            }
-
-            let audioElement = document.createElement('audio');
-
-            audioElement.autoplay = true;
-            audioElement.setAttribute("playsinline", "");
-
-            audioElement.srcObject = new MediaStream([track]);
-
-            document.body.appendChild(audioElement);
-
-            audioElement.play();
-
-            audioElementsBySessionId[sessionId] = audioElement;
-        }
-
-        // Stops playing a track.
-        function stopTrack(sessionId) {
-            let audioElement = audioElementsBySessionId[sessionId];
-
-            if (audioElement != undefined) {
-                audioElement.remove();
-                audioElement = null;
-                audioElementsBySessionId.delete(sessionId);
-            }
-        }
-
-        // ---- call properties ----
-
-        // Retrieves the room's current participants.
-        function participants() {
-            let participants = call.participants();
-            return JSON.stringify(participants);
-        }
-
-        // ---- event handlers ----
-
-        // Responds to Daily's "joined-meeting" events.
-        function handleJoinedMeeting(evt) {
-            console.log('[JOINED MEETING]');
-            console.log(evt);
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "error" events.
-        function handleError(evt) {
-            console.log('[ERROR]');
-            console.log(evt);
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "participant-joined" events.
-        function handleParticipantJoined(evt) {
-            console.log('[PARTICIPANT JOINED]');
-            console.log(evt);
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "participant-updated" events.
-        function handleParticipantUpdated(evt) {
-            console.log('[PARTICIPANT UPDATED]');
-            console.log(evt);
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "participant-left" events.
-        function handleParticipantLeft(evt) {
-            console.log('[PARTICIPANT LEFT]');
-            console.log(evt);
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "app-message" events.
-        async function handleAppMessage(evt) {
-            console.log('[APP MESSAGE]');
-            console.log(evt);
-
-            try {
-                switch (evt.data.msg) {
-                    case MSG_MAKE_MODERATOR:
-                        await becomeModerator();
-                        break;
-                    case MSG_MAKE_SPEAKER:
-                        becomeSpeaker();
-                        break;
-                    case MSG_MAKE_LISTENER:
-                        becomeListener();
-                        break;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-
-            postNativeEventMessage(evt);
-        }
-
-        // Responds to Daily's "track-started" events.
-        function handleTrackStarted(evt) {
-            console.log('[TRACK STARTED]');
-            console.log(evt);
-
-            // don't play the local audio track (echo!)
-            if (evt.participant.local) {
-                return;
-            }
-
-            startTrack(evt.participant.sessionId, evt.track);
-        }
-
-        // Responds to Daily's "track-stopped" events.
-        function handleTrackStopped(evt) {
-            console.log('[TRACK STOPPED]');
-            console.log(evt);
-
-            stopTrack(evt.participant.sessionId);
-        }
-
-        // ---- native bridge ----
-
-        // Posts an "event" message to the native app.
-        function postNativeEventMessage(evt) {
-            if (window.webkit == undefined) {
-                return;
-            }
-            let messageHandler = window.webkit.messageHandlers.events;
-            if (messageHandler == undefined) {
-                return;
-            }
-            messageHandler.postMessage(JSON.stringify(evt));
-        }
-
-        // Posts an "console" message to the native app.
-        function postNativeConsoleMessage(lvl, msg) {
-            if (window.webkit == undefined) {
-                return;
-            }
-            let messageHandler = window.webkit.messageHandlers.console;
-            if (messageHandler == undefined) {
-                return;
-            }
-            messageHandler.postMessage(JSON.stringify({
-                level: lvl,
-                content: msg
-            }));
-        }
-
-        // Posts an "error" message to the native app.
-        function postNativeErrorMessage(msg, url, line, column, error) {
-            if (window.webkit == undefined) {
-                return;
-            }
-            let messageHandler = window.webkit.messageHandlers.errors;
-            if (messageHandler == undefined) {
-                return;
-            }
-            messageHandler.postMessage(JSON.stringify({
-                message: msg,
-                url,
-                line,
-                column,
-                error
-            }));
-        }
+        messageHandler.postMessage(
+          JSON.stringify({
+            message: msg,
+            url,
+            line,
+            column,
+            error,
+          })
+        );
+      }
     </script>
-</body>
-
+  </body>
 </html>
