@@ -91,6 +91,8 @@ final class Client: NSObject, ObservableObject {
 
     /// The URL of the page that.
     private static var pageURL: URL {
+        // The source file behind this URL can be found at `react/public/ios-bridge.html`
+        // along with an explanation of why it needs to be hosted externally for now:
         URL(string: "https://audio-only-server.netlify.app/static/bridge.html")!
     }
 
