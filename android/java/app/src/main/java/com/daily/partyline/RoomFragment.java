@@ -150,10 +150,10 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
     public void onDestroy() {
         mClient.leave();
         mBinding.webview.removeJavascriptInterface(JS_INTERFACE_NAME);
-//        mBinding.webview.getSettings().setJavaScriptEnabled(false);
         mParticipants.clear();
         mParticipants = null;
-
+        mClient = null;
+        mBinding.webview.getSettings().setJavaScriptEnabled(false);
         super.onDestroy();
     }
 

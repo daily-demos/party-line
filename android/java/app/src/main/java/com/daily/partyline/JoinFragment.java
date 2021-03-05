@@ -87,15 +87,14 @@ public class JoinFragment extends Fragment {
             if (!userName.matches("") && roomUrl.matches("")) {
                 toRoom.setUserName(userName);
                 toRoom.setRoomUrl(null);
-                dismissKeyboard();
-                navController.navigate(toRoom);
             }
             else if (!userName.matches("")) {
                 toRoom.setUserName(userName);
                 toRoom.setRoomUrl(roomUrl);
-                dismissKeyboard();
-                navController.navigate(toRoom);
             }
+
+            dismissKeyboard();
+            navController.navigate(toRoom);
         });
     }
 
