@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Party line</string>
+    <string name="app_name">Party Line</string>
     <string name="learn_more"><a href="https://github.com/daily-demos/party-line">Learn more about this demo</a></string>
     <string name="learn_more_short"><a href="https://github.com/daily-demos/party-line">Learn more</a></string>
 
