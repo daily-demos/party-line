@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.InputMethodManager.HIDE_IMPLICIT_ONLY
+import android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import com.daily.partyline.databinding.FragmentJoinBinding

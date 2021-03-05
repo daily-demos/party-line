@@ -47,6 +47,7 @@ class RoomFragment : Fragment(), WebAppClientCallback {
 
     // Post view initialization logic
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         binding.progressbar.visibility = View.VISIBLE
         client = WebAppClient()
         client?.setListener(this@RoomFragment)
@@ -106,8 +107,10 @@ class RoomFragment : Fragment(), WebAppClientCallback {
     override fun onDestroy() {
         client?.leave()
         binding.webview.removeJavascriptInterface(JS_INTERFACE_NAME)
-        //        mBinding.webview.getSettings().setJavaScriptEnabled(false);
         participants.clear()
+        participants = mutableListOf(null)
+        client = null
+        binding.webview.getSettings().setJavaScriptEnabled(false)
         super.onDestroy()
     }
 
