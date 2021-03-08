@@ -159,7 +159,7 @@ private struct ParsedUsername: RawRepresentable {
     }
 
     init?(rawValue: String) {
-        let pattern = "^(?:(✋) )?(.+)(?:_(MOD|SPK|LST))$"
+        let pattern = "^(?:(✋) )?(.+?)(?:_?(MOD|SPK|LST))$"
 
         let regex = try! NSRegularExpression(
           pattern: pattern,
