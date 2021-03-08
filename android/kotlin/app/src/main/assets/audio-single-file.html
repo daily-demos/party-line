@@ -10,9 +10,7 @@
 
       async function joinRoom({ moderator } = {}) {
         if (moderator) {
-          name = userName.replace(LISTENER_TAG, '');
-          name = userName.replace(MODERATOR_TAG, '');
-          name += '' + MODERATOR_TAG;
+          name = userName.replace(LISTENER_TAG, MODERATOR_TAG);
           userName = name;
         }
 
@@ -86,8 +84,6 @@
       const SPEAKER_TAG = 'SPK';
       const LISTENER_TAG = 'LST';
       const MODERATOR_TAG = 'MOD';
-      const MUTED_INDICATOR = 'MTD';
-      const NOT_MUTED_INDICATOR = 'NMT🔊';
       const HAND_RAISED_TAG = '✋ ';
 
       // participant event handlers
@@ -166,7 +162,7 @@
         let name = call.participants().local.user_name;
         name = setSpeakingTagInUserName(name);
         name = name.replace(SPEAKER_TAG, '');
-        name += ' ' + LISTENER_TAG;
+        name += '' + LISTENER_TAG;
 
         call.setUserName(name);
         call.setLocalAudio(false);

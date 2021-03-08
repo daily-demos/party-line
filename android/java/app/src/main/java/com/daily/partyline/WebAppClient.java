@@ -37,7 +37,7 @@ public class WebAppClient {
 
     private void joinRoom() {
         mWebView.evaluateJavascript(
-                "userName='" + mUserName + Participant.LISTENER_TAG + "';" +
+                "userName='" + mUserName + "_" + Participant.LISTENER_TAG + "';" +
                         "roomUrl='https://devrel.daily.co/" + mRoomName + "';" +
                         "(async() => {" +
                         "roomName = '" + mRoomName + "';" +
@@ -48,7 +48,7 @@ public class WebAppClient {
 
     private void createAndJoinRoom() {
         mWebView.evaluateJavascript(
-                "userName='" + mUserName + Participant.MODERATOR_TAG + "';" +
+                "userName='" + mUserName + "_" + Participant.MODERATOR_TAG + "';" +
                         "(async() => {" +
                         "let roomInfo = await createRoom();" +
                         "roomUrl = roomInfo.roomUrl;" +
@@ -79,7 +79,7 @@ public class WebAppClient {
     public void makeModerator(String Id) {
         Objects.requireNonNull(getParticipant(Id)).cleanUsername();
         mWebView.evaluateJavascript(
-                "call.sendAppMessage({ userName: '" + Objects.requireNonNull(getParticipant(Id)).getUserName() + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
+                "call.sendAppMessage({ userName: '" + Objects.requireNonNull(getParticipant(Id)).getUserName() + "_" + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
     }
 
     public void eject(String Id) {
@@ -193,10 +193,12 @@ public class WebAppClient {
 
         @JavascriptInterface
         public void handleParticipantJoinedOrUpdated(String userName, String Id, String isModerator) {
+            Log.e(TAG, "handleParticipantJoinedOrUpdated: " + userName);
             Participant participant;
             if (!containsKey(Id)) {
                 // Joined
                 participant = new Participant(userName, Id, Boolean.parseBoolean(isModerator));
+                Log.e(TAG, "new Participant: " + participant.getUserName());
                 synchronized(mParticipants) {
                     mParticipants.add(participant);
                 }
@@ -204,6 +206,7 @@ public class WebAppClient {
                 // Updated
                 participant = getParticipant(Id);
                 Objects.requireNonNull(participant).update(userName, Boolean.parseBoolean(isModerator));
+                Log.e(TAG, "update: " + participant.getUserName());
             }
             Log.e(TAG, "new/updated user " + participant.getUserName());
             mCallback.onDataChanged();
@@ -218,8 +221,10 @@ public class WebAppClient {
 
         @JavascriptInterface
         public void handlePromote(String userName, String Id) {
+            Log.e(TAG, "handlePromote: " + userName);
             Participant participant = getParticipant(Id);
             Objects.requireNonNull(participant).update(userName, participant.getIsModerator());
+            Log.e(TAG, "handlePromote: " + participant.getUserName());
             mCallback.onDataChanged();
             mCallback.onRoleChanged();
         }

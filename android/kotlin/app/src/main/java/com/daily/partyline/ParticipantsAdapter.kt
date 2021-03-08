@@ -84,6 +84,7 @@ class ParticipantsAdapter(private val clickListener: OnItemClickListener, var pa
                 cardView.strokeWidth = 0
             }
             val strings: Array<String?>? = participantCell.getUserName()
+                    ?.replace("_", "")
                     ?.replace(Participant.SPEAKER_TAG, "")
                     ?.replace(Participant.RAISE_HAND_TAG, "")
                     ?.replace(Participant.LISTENER_TAG, "")

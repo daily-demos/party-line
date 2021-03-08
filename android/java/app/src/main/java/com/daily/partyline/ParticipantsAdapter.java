@@ -132,6 +132,7 @@ public class ParticipantsAdapter extends RecyclerView.Adapter<ParticipantsAdapte
             }
 
             String[] strings = participantCell.getUserName()
+                    .replace("_", "")
                     .replace(Participant.SPEAKER_TAG, "")
                     .replace(Participant.RAISE_HAND_TAG, "")
                     .replace(Participant.LISTENER_TAG, "")

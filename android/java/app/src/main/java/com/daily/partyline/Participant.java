@@ -47,7 +47,7 @@ public class Participant {
     }
 
     public void setUserName(String userName) {
-        mUserName = userName.replace("_", "");
+        mUserName = userName;//.replace("_", "");
         mIsSpeaker = mIsModerator || userName.contains(SPEAKER_TAG);
         mIsHandRaised = userName.contains(RAISE_HAND_TAG);
     }
@@ -90,8 +90,9 @@ public class Participant {
     }
 
     public void cleanUsername() {
-        mUserName.replace(Participant.MODERATOR_TAG, "");
-        mUserName.replace(Participant.LISTENER_TAG, "");
-        mUserName.replace(Participant.SPEAKER_TAG, "");
+        mUserName = mUserName.replace("_", "");
+        mUserName = mUserName.replace(Participant.MODERATOR_TAG, "");
+        mUserName = mUserName.replace(Participant.LISTENER_TAG, "");
+        mUserName = mUserName.replace(Participant.SPEAKER_TAG, "");
     }
 }

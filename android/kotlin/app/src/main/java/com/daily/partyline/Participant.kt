@@ -30,7 +30,7 @@ class Participant(userName: String, Id: String, isModerator: Boolean) {
     }
 
     fun setUserName(userName: String) {
-        this.userName = userName.replace("_", "")
+        this.userName = userName//.replace("_", "")
         isSpeaker = isModerator == true || userName.contains(SPEAKER_TAG.toString())
         isHandRaised = userName.contains(RAISE_HAND_TAG.toString())
     }
@@ -74,9 +74,10 @@ class Participant(userName: String, Id: String, isModerator: Boolean) {
     }
 
     fun cleanUsername() {
-        userName?.replace(MODERATOR_TAG.toString(), "")
-        userName?.replace(LISTENER_TAG.toString(), "")
-        userName?.replace(SPEAKER_TAG.toString(), "")
+        userName = userName?.replace("_", "")
+        userName = userName?.replace(MODERATOR_TAG.toString(), "")
+        userName = userName?.replace(LISTENER_TAG.toString(), "")
+        userName = userName?.replace(SPEAKER_TAG.toString(), "")
     }
 
     companion object {

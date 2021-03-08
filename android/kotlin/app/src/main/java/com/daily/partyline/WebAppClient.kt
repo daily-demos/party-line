@@ -25,7 +25,7 @@ class WebAppClient {
     // Interface
     private fun joinRoom() {
         webView?.evaluateJavascript(
-                "userName='" + userName + Participant.Companion.LISTENER_TAG + "';" +
+                "userName='" + userName + "_" + Participant.LISTENER_TAG + "';" +
                         "roomUrl='https://devrel.daily.co/" + roomName + "';" +
                         "(async() => {" +
                         "roomName = '" + roomName + "';" +
@@ -36,7 +36,7 @@ class WebAppClient {
 
     private fun createAndJoinRoom() {
         webView?.evaluateJavascript(
-                "userName='" + userName + Participant.Companion.MODERATOR_TAG + "';" +
+                "userName='" + userName + "_" + Participant.MODERATOR_TAG + "';" +
                         "(async() => {" +
                         "let roomInfo = await createRoom();" +
                         "roomUrl = roomInfo.roomUrl;" +
@@ -67,7 +67,7 @@ class WebAppClient {
     fun makeModerator(Id: String?) {
         getParticipant(Id)?.cleanUsername()
         webView?.evaluateJavascript(
-                "call.sendAppMessage({ userName: '" + getParticipant(Id)?.getUserName() + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null)
+                "call.sendAppMessage({ userName: '" + getParticipant(Id)?.getUserName() + "_" + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null)
     }
 
     fun eject(Id: String?) {
