@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static androidx.emoji.text.EmojiCompat.get;
 import static androidx.emoji.text.EmojiCompat.init;
 
 public class RoomFragment extends Fragment implements WebAppClientCallback{
@@ -107,10 +108,14 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
             @Override
             public void onModeratorChangeRole(String Id) {
-                if (Objects.requireNonNull(getParticipant(Id)).getIsModerator()) {
-                    return;
+                Participant participant = getParticipant(Id);
+                if (participant != null) {
+                    if (participant.getIsModerator()) {
+                        return;
+                    }
+
+                    mClient.changeRole(Id);
                 }
-                mClient.changeRole(Id);
             }
 
             @Override
@@ -124,7 +129,7 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
             }
         };
 
-        mParticipants = Collections.synchronizedList(new ArrayList<>());
+        mParticipants = Collections.synchronizedList(new ArrayList());
         mSpeakersAdapter = new ParticipantsAdapter(clickListener, mParticipants);
         mListenersAdapter = new ParticipantsAdapter(clickListener, mParticipants);
         mHeaderAdapter = new HeaderAdapter("Speakers", "00:00");
@@ -151,7 +156,7 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
         mClient.leave();
         mBinding.webview.removeJavascriptInterface(JS_INTERFACE_NAME);
         mParticipants.clear();
-        mParticipants = null;
+        // mParticipants = null;
         mClient = null;
         mBinding.webview.getSettings().setJavaScriptEnabled(false);
         super.onDestroy();
@@ -192,12 +197,16 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
         Participant me = getParticipant(Participant.myId);
 
-        if (Objects.requireNonNull(me).getIsModerator()) {
+        if (me == null) {
+            return;
+        }
+
+        if (me.getIsModerator()) {
             mBinding.toggleButton.setVisibility(View.VISIBLE);
             mBinding.raiseButton.setVisibility(View.GONE);
             mBinding.leaveButton.setVisibility(View.VISIBLE);
         }
-        if (Objects.requireNonNull(me).getIsSpeaker()) {
+        if (me.getIsSpeaker()) {
             mBinding.toggleButton.setVisibility(View.VISIBLE);
             mBinding.raiseButton.setVisibility(View.GONE);
             mBinding.leaveButton.setVisibility(View.VISIBLE);
@@ -212,9 +221,11 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
     private void toggleAudioUI(Boolean isMuted) {
         Participant me = getParticipant(Participant.myId);
-        if (Objects.requireNonNull(me).getIsModerator() || Objects.requireNonNull(me).getIsSpeaker()) {
-            mBinding.toggleButton.setCompoundDrawablesWithIntrinsicBounds(isMuted ? R.drawable.ic_mic_off : R.drawable.ic_mic_on, 0, 0, 0);
-            mBinding.toggleButton.setText(isMuted ? "Unmute mic" : "Mute mic");
+        if (me != null) {
+            if (me.getIsModerator() || me.getIsSpeaker()) {
+                mBinding.toggleButton.setCompoundDrawablesWithIntrinsicBounds(isMuted ? R.drawable.ic_mic_off : R.drawable.ic_mic_on, 0, 0, 0);
+                mBinding.toggleButton.setText(isMuted ? "Unmute mic" : "Mute mic");
+            }
         }
     }
 
@@ -314,7 +325,8 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
     @Override
     public void onEndCall() {
         requireActivity().runOnUiThread(() -> {
-            if (Objects.requireNonNull(getParticipant(Participant.myId)).getIsModerator()) {
+            Participant me = getParticipant(Participant.myId);
+            if (me != null && me.getIsModerator()) {
                 synchronized(mParticipants) {
                     for (Participant p : mParticipants) {
                         if (!p.getId().equals(Participant.myId)) {

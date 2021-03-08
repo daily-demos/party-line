@@ -77,9 +77,13 @@ public class WebAppClient {
     }
 
     public void makeModerator(String Id) {
-        Objects.requireNonNull(getParticipant(Id)).cleanUsername();
-        mWebView.evaluateJavascript(
-                "call.sendAppMessage({ userName: '" + Objects.requireNonNull(getParticipant(Id)).getUserName() + "_" + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
+        Participant participant = getParticipant(Id);
+        if (participant != null) {
+            participant.cleanUsername();
+            mWebView.evaluateJavascript(
+                    "call.sendAppMessage({ userName: '" + participant.getUserName() + "_" + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
+        }
+
     }
 
     public void eject(String Id) {
@@ -90,10 +94,12 @@ public class WebAppClient {
 
     public void raiseHand() {
         Participant me = getParticipant(Participant.myId);
-        Objects.requireNonNull(me).setIsHandRaised(!me.getIsHandRaised());
-        mWebView.evaluateJavascript(
-                "call.setUserName('" + me.getUserName() +"');",
-                null);
+        if (me != null) {
+            me.setIsHandRaised(!me.getIsHandRaised());
+            mWebView.evaluateJavascript(
+                    "call.setUserName('" + me.getUserName() +"');",
+                    null);
+        }
     }
 
     // Setup
@@ -193,40 +199,42 @@ public class WebAppClient {
 
         @JavascriptInterface
         public void handleParticipantJoinedOrUpdated(String userName, String Id, String isModerator) {
-            Log.e(TAG, "handleParticipantJoinedOrUpdated: " + userName);
             Participant participant;
             if (!containsKey(Id)) {
                 // Joined
                 participant = new Participant(userName, Id, Boolean.parseBoolean(isModerator));
-                Log.e(TAG, "new Participant: " + participant.getUserName());
                 synchronized(mParticipants) {
                     mParticipants.add(participant);
                 }
             } else {
                 // Updated
                 participant = getParticipant(Id);
-                Objects.requireNonNull(participant).update(userName, Boolean.parseBoolean(isModerator));
-                Log.e(TAG, "update: " + participant.getUserName());
+                if (participant == null) {
+                    return;
+                }
+                participant.update(userName, Boolean.parseBoolean(isModerator));
             }
-            Log.e(TAG, "new/updated user " + participant.getUserName());
             mCallback.onDataChanged();
         }
 
         @JavascriptInterface
         public void handleMute(String isMuted) {
-            Objects.requireNonNull(getParticipant(Participant.myId)).setIsMuted(Boolean.parseBoolean(isMuted));
-            mCallback.onAudioStateChanged(Boolean.parseBoolean(isMuted));
-            mCallback.onDataChanged();
+            Participant me = getParticipant(Participant.myId);
+            if (me != null) {
+                me.setIsMuted(Boolean.parseBoolean(isMuted));
+                mCallback.onAudioStateChanged(Boolean.parseBoolean(isMuted));
+                mCallback.onDataChanged();
+            }
         }
 
         @JavascriptInterface
         public void handlePromote(String userName, String Id) {
-            Log.e(TAG, "handlePromote: " + userName);
             Participant participant = getParticipant(Id);
-            Objects.requireNonNull(participant).update(userName, participant.getIsModerator());
-            Log.e(TAG, "handlePromote: " + participant.getUserName());
-            mCallback.onDataChanged();
-            mCallback.onRoleChanged();
+            if (participant != null) {
+                participant.update(userName, participant.getIsModerator());
+                mCallback.onDataChanged();
+                mCallback.onRoleChanged();
+            }
         }
 
         @JavascriptInterface
@@ -254,8 +262,11 @@ public class WebAppClient {
 
         @JavascriptInterface
         public void handleParticpantAudioChange(String Id, String isMuted) {
-            Objects.requireNonNull(getParticipant(Id)).setIsMuted(Boolean.parseBoolean(isMuted));
-            mCallback.onDataChanged();
+            Participant participant = getParticipant(Id);
+            if (participant != null) {
+                participant.setIsMuted(Boolean.parseBoolean(isMuted));
+                mCallback.onDataChanged();
+            }
         }
 
         @JavascriptInterface
@@ -264,7 +275,10 @@ public class WebAppClient {
             if (activeSpeaker != null) {
                 activeSpeaker.setIsActiveSpeaker(false);
             }
-            Objects.requireNonNull(getParticipant(Id)).setIsActiveSpeaker(true);
+            Participant participant = getParticipant(Id);
+            if (participant != null) {
+                participant.setIsActiveSpeaker(true);
+            }
             mCallback.onDataChanged();
         }
     }

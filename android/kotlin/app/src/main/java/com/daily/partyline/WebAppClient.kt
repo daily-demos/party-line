@@ -10,6 +10,7 @@ class WebAppClient {
     var roomName: String? = null
     var userName: String? = null
     private var participants: MutableList<Participant?>? = null
+
     fun bind(webview: WebView?, roomName: String?, userName: String?, participants: MutableList<Participant?>) {
         webView = webview
         this.roomName = roomName
@@ -234,11 +235,8 @@ class WebAppClient {
 
         @JavascriptInterface
         fun handleActiveSpeakerChange(Id: String?) {
-            val activeSpeaker = getActiveSpeaker()
-            if (activeSpeaker != null) {
-                activeSpeaker.setIsActiveSpeaker(false)
-            }
-            Objects.requireNonNull(getParticipant(Id))?.setIsActiveSpeaker(true)
+            getActiveSpeaker()?.setIsActiveSpeaker(false)
+            getParticipant(Id)?.setIsActiveSpeaker(true)
             callback?.onDataChanged()
         }
     }

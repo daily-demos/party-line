@@ -18,6 +18,7 @@ import com.daily.partyline.databinding.FragmentRoomBinding
 import com.nabinbhandari.android.permissions.PermissionHandler
 import com.nabinbhandari.android.permissions.Permissions
 import java.util.*
+import kotlin.collections.ArrayList
 
 class RoomFragment : Fragment(), WebAppClientCallback {
     private lateinit var binding: FragmentRoomBinding
@@ -34,6 +35,7 @@ class RoomFragment : Fragment(), WebAppClientCallback {
     private var userName: String? = null
     private var roomName: String? = null
     private var client: WebAppClient? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initEmojiCompat()
@@ -55,17 +57,21 @@ class RoomFragment : Fragment(), WebAppClientCallback {
 
         userName = RoomFragmentArgs.fromBundle(requireArguments()).getUserName()
         roomName = RoomFragmentArgs.fromBundle(requireArguments()).getRoomUrl()
+
         overrideGestureNavigation()
+
         binding.toggleButton.setOnClickListener { sender: View? -> client?.toggleMic() }
         binding.leaveButton.setOnClickListener { sender: View? ->
             client?.leave()
             val navController = Navigation.findNavController(view)
             navController.popBackStack()
         }
+
         binding.raiseButton.setOnClickListener { sender: View? ->
             client?.raiseHand()
             notifyUI()
         }
+
         val clickListener: OnItemClickListener = object : OnItemClickListener {
             override fun onModeratorMute(Id: String?) {
                 client?.muteParticipant(Id)
@@ -86,11 +92,13 @@ class RoomFragment : Fragment(), WebAppClientCallback {
                 client?.eject(Id)
             }
         }
+
         participants = Collections.synchronizedList(ArrayList())
         speakersAdapter = ParticipantsAdapter(clickListener, participants)
         listenersAdapter = ParticipantsAdapter(clickListener, participants)
         headerAdapter = HeaderAdapter("Speakers", "00:00")
         footerAdapter = FooterAdapter(roomName)
+
         val concatAdapter = ConcatAdapter(
                 headerAdapter,
                 GridConcatAdapter(speakersAdapter),
@@ -245,7 +253,7 @@ class RoomFragment : Fragment(), WebAppClientCallback {
 
     override fun onEndCall() {
         requireActivity().runOnUiThread {
-            if (Objects.requireNonNull(getParticipant(Participant.myId))!!.getIsModerator()!!) {
+            if (getParticipant(Participant.myId)?.getIsModerator() == true) {
                 synchronized(participants) {
                     for (p in participants) {
                         if (p?.getId() != Participant.myId) {
