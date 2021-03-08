@@ -63,11 +63,15 @@
         // set up countdown timer
         clearInterval(window.countdownInterval);
         let roomInfo = await call.room();
-        let exp = roomInfo.config.exp * 1000 || Date.now() + 1 * 60 * 1000;
+        let exp = roomInfo.config.exp * 1000;
         window.countdownInterval = setInterval(() => {
           let secs = Math.round((exp - Date.now()) / 1000);
           var countDown =
             Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2);
+
+          if (secs === 0) {
+            Android.endCall();
+          }
           Android.updateTimer(countDown);
         }, 1000);
       }
@@ -219,6 +223,7 @@
       async function createToken(roomName) {
         if (!roomName) {
           console.error('please do not create tokens with no room name');
+          Android.error();
           return '';
         }
 

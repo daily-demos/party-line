@@ -1,7 +1,5 @@
 package com.daily.partyline;
 
-import android.provider.Telephony;
-
 public class Participant {
 
     public static String myId;

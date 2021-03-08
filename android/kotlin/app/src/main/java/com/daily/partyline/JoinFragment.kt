@@ -67,8 +67,8 @@ class JoinFragment : Fragment() {
 
     //region utils
     private fun getUserName(): String? {
-        val firstName = binding.firstName.editText?.getText().toString()
-        val lastName = binding.lastName.editText?.getText().toString()
+        val firstName = binding.firstName.editText?.getText().toString().replace(" ", "")
+        val lastName = binding.lastName.editText?.getText().toString().replace(" ", "")
         return (if (firstName == "") "Test" else firstName) + if (lastName == "") "" else " $lastName"
     }
 

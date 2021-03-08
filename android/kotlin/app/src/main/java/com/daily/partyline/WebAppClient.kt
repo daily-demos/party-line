@@ -77,7 +77,7 @@ class WebAppClient {
     }
 
     fun raiseHand() {
-        val me = getParticipant(Participant.Companion.myId)
+        val me = getParticipant(Participant.myId)
         me?.setIsHandRaised(me.getIsHandRaised() == false)
         webView?.evaluateJavascript(
                 "call.setUserName('" + me?.getUserName() + "');",
@@ -125,15 +125,23 @@ class WebAppClient {
     }
 
     fun getParticipant(Id: String?): Participant? {
-        for (p in participants!!) {
-            if (p?.getId().equals(Id, ignoreCase = true)) return p
+        participants?.let {
+            synchronized(it) {
+                for (p in participants!!) {
+                    if (p?.getId().equals(Id, ignoreCase = true)) return p
+                }
+            }
         }
         return null
     }
 
     fun getActiveSpeaker(): Participant? {
-        for (p in participants!!) {
-            if (p?.getIsActiveSpeaker() == true) return p
+        participants?.let {
+            synchronized(it) {
+                for (p in participants!!) {
+                    if (p?.getIsActiveSpeaker() == true) return p
+                }
+            }
         }
         return null
     }
@@ -164,7 +172,11 @@ class WebAppClient {
             if (containsKey(Id) == false) {
                 // Joined
                 participant = Participant(userName, Id, java.lang.Boolean.parseBoolean(isModerator))
-                participants?.add(participant)
+                participants?.let {
+                    synchronized(it) {
+                        participants?.add(participant)
+                    }
+                }
             } else {
                 // Updated
                 participant = getParticipant(Id)
@@ -176,7 +188,7 @@ class WebAppClient {
 
         @JavascriptInterface
         fun handleMute(isMuted: String?) {
-            getParticipant(Participant.Companion.myId)?.setIsMuted(java.lang.Boolean.parseBoolean(isMuted))
+            getParticipant(Participant.myId)?.setIsMuted(java.lang.Boolean.parseBoolean(isMuted))
             callback?.onAudioStateChanged(java.lang.Boolean.parseBoolean(isMuted))
             callback?.onDataChanged()
         }
@@ -191,8 +203,12 @@ class WebAppClient {
 
         @JavascriptInterface
         fun handleParticipantLeft(Id: String?) {
-            participants?.remove(getParticipant(Id))
-            callback?.onDataChanged()
+            participants?.let {
+                synchronized(it) {
+                    participants?.remove(getParticipant(Id))
+                }
+                callback?.onDataChanged()
+            }
         }
 
         @JavascriptInterface
@@ -201,9 +217,13 @@ class WebAppClient {
         }
 
         @JavascriptInterface
+        fun endCall() {
+            callback?.onEndCall();
+        }
+
+        @JavascriptInterface
         fun error() {
-            leave()
-            callback?.onForceEject()
+            callback?.onError()
         }
 
         @JavascriptInterface

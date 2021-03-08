@@ -100,8 +100,8 @@ public class JoinFragment extends Fragment {
 
     //region utils
     private String getUserName() {
-        String firstName = binding.firstName.getEditText().getText().toString();
-        String lastName = binding.lastName.getEditText().getText().toString();
+        String firstName = binding.firstName.getEditText().getText().toString().replace(" ","");
+        String lastName = binding.lastName.getEditText().getText().toString().replace(" ","");;
         return (firstName.equals("") ? "Test" : firstName) + (lastName.equals("") ? "" : " " + lastName);
     }
 

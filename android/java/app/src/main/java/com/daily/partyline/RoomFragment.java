@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.daily.partyline.databinding.FragmentRoomBinding;
 import com.nabinbhandari.android.permissions.PermissionHandler;
@@ -25,6 +26,7 @@ import com.nabinbhandari.android.permissions.Permissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static androidx.emoji.text.EmojiCompat.init;
 
@@ -86,8 +88,6 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
         mBinding.toggleButton.setOnClickListener((sender) -> {
             mClient.toggleMic();
-//            mBinding.toggleButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_mic_on, 0, 0, 0);
-//            mBinding.toggleButton.setText("Mute mic");
         });
         mBinding.leaveButton.setOnClickListener((sender) -> {
             mClient.leave();
@@ -107,7 +107,7 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
             @Override
             public void onModeratorChangeRole(String Id) {
-                if (getParticipant(Id).getIsModerator()) {
+                if (Objects.requireNonNull(getParticipant(Id)).getIsModerator()) {
                     return;
                 }
                 mClient.changeRole(Id);
@@ -192,12 +192,12 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
         Participant me = getParticipant(Participant.myId);
 
-        if (me.getIsModerator()) {
+        if (Objects.requireNonNull(me).getIsModerator()) {
             mBinding.toggleButton.setVisibility(View.VISIBLE);
             mBinding.raiseButton.setVisibility(View.GONE);
             mBinding.leaveButton.setVisibility(View.VISIBLE);
         }
-        if (me.getIsSpeaker()) {
+        if (Objects.requireNonNull(me).getIsSpeaker()) {
             mBinding.toggleButton.setVisibility(View.VISIBLE);
             mBinding.raiseButton.setVisibility(View.GONE);
             mBinding.leaveButton.setVisibility(View.VISIBLE);
@@ -212,16 +212,18 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
 
     private void toggleAudioUI(Boolean isMuted) {
         Participant me = getParticipant(Participant.myId);
-        if (me.getIsModerator() || me.getIsSpeaker()) {
+        if (Objects.requireNonNull(me).getIsModerator() || Objects.requireNonNull(me).getIsSpeaker()) {
             mBinding.toggleButton.setCompoundDrawablesWithIntrinsicBounds(isMuted ? R.drawable.ic_mic_off : R.drawable.ic_mic_on, 0, 0, 0);
             mBinding.toggleButton.setText(isMuted ? "Unmute mic" : "Mute mic");
         }
     }
 
     Participant getParticipant(String Id) {
-        for (Participant p : mParticipants) {
-            if (p.getId().equalsIgnoreCase(Id))
-                return p;
+        synchronized(mParticipants) {
+            for (Participant p : mParticipants) {
+                if (p.getId().equalsIgnoreCase(Id))
+                    return p;
+            }
         }
 
         return null;
@@ -285,6 +287,46 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
     @Override
     public void onForceEject() {
         requireActivity().runOnUiThread(() -> {
+            mClient.leave();
+            mBinding.progressbar.setVisibility(View.INVISIBLE);
+            NavController navController = Navigation.findNavController(mBinding.getRoot());
+            navController.popBackStack();
+        });
+    }
+
+    @Override
+    public void onError() {
+        requireActivity().runOnUiThread(() -> {
+            CharSequence text = "Something went wrong! Make sure the code is correct and the room exists";
+            int duration = Toast.LENGTH_LONG;
+
+            Toast toast = Toast.makeText(requireActivity(), text, duration);
+            toast.show();
+
+            mClient.leave();
+            mBinding.progressbar.setVisibility(View.INVISIBLE);
+
+            NavController navController = Navigation.findNavController(mBinding.getRoot());
+            navController.popBackStack();
+        });
+    }
+
+    @Override
+    public void onEndCall() {
+        requireActivity().runOnUiThread(() -> {
+            if (Objects.requireNonNull(getParticipant(Participant.myId)).getIsModerator()) {
+                synchronized(mParticipants) {
+                    for (Participant p : mParticipants) {
+                        if (!p.getId().equals(Participant.myId)) {
+                            mClient.eject(p.getId());
+                        }
+                    }
+                }
+            }
+
+            mClient.leave();
+            mBinding.progressbar.setVisibility(View.INVISIBLE);
+
             NavController navController = Navigation.findNavController(mBinding.getRoot());
             navController.popBackStack();
         });

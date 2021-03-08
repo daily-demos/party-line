@@ -7,6 +7,8 @@ public interface WebAppClientCallback {
     void onTick(String timer);
     void onDataChanged();
     void onForceEject();
+    void onError();
     void onRoleChanged();
+    void onEndCall();
     void onAudioStateChanged(Boolean isMuted);
 }

@@ -77,9 +77,9 @@ public class WebAppClient {
     }
 
     public void makeModerator(String Id) {
-        getParticipant(Id).cleanUsername();
+        Objects.requireNonNull(getParticipant(Id)).cleanUsername();
         mWebView.evaluateJavascript(
-                "call.sendAppMessage({ userName: '" + getParticipant(Id).getUserName() + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
+                "call.sendAppMessage({ userName: '" + Objects.requireNonNull(getParticipant(Id)).getUserName() + Participant.MODERATOR_TAG + "', msg: MSG_MAKE_MODERATOR }, '" + Id + "');", null);
     }
 
     public void eject(String Id) {
@@ -90,7 +90,7 @@ public class WebAppClient {
 
     public void raiseHand() {
         Participant me = getParticipant(Participant.myId);
-        me.setIsHandRaised(!me.getIsHandRaised());
+        Objects.requireNonNull(me).setIsHandRaised(!me.getIsHandRaised());
         mWebView.evaluateJavascript(
                 "call.setUserName('" + me.getUserName() +"');",
                 null);
@@ -149,18 +149,22 @@ public class WebAppClient {
     }
 
     Participant getParticipant(String Id) {
-        for (Participant p : mParticipants) {
-            if (p.getId().equalsIgnoreCase(Id))
-                return p;
+        synchronized(mParticipants) {
+            for (Participant p : mParticipants) {
+                if (p.getId().equalsIgnoreCase(Id))
+                    return p;
+            }
         }
 
         return null;
     }
 
     Participant getActiveSpeaker() {
-        for (Participant p : mParticipants) {
-            if (p.getIsActiveSpeaker())
-                return p;
+        synchronized(mParticipants) {
+            for (Participant p : mParticipants) {
+                if (p.getIsActiveSpeaker())
+                    return p;
+            }
         }
 
         return null;
@@ -193,11 +197,13 @@ public class WebAppClient {
             if (!containsKey(Id)) {
                 // Joined
                 participant = new Participant(userName, Id, Boolean.parseBoolean(isModerator));
-                mParticipants.add(participant);
+                synchronized(mParticipants) {
+                    mParticipants.add(participant);
+                }
             } else {
                 // Updated
                 participant = getParticipant(Id);
-                participant.update(userName, Boolean.parseBoolean(isModerator));
+                Objects.requireNonNull(participant).update(userName, Boolean.parseBoolean(isModerator));
             }
             Log.e(TAG, "new/updated user " + participant.getUserName());
             mCallback.onDataChanged();
@@ -205,7 +211,7 @@ public class WebAppClient {
 
         @JavascriptInterface
         public void handleMute(String isMuted) {
-            getParticipant(Participant.myId).setIsMuted(Boolean.parseBoolean(isMuted));
+            Objects.requireNonNull(getParticipant(Participant.myId)).setIsMuted(Boolean.parseBoolean(isMuted));
             mCallback.onAudioStateChanged(Boolean.parseBoolean(isMuted));
             mCallback.onDataChanged();
         }
@@ -213,14 +219,16 @@ public class WebAppClient {
         @JavascriptInterface
         public void handlePromote(String userName, String Id) {
             Participant participant = getParticipant(Id);
-            participant.update(userName, participant.getIsModerator());
+            Objects.requireNonNull(participant).update(userName, participant.getIsModerator());
             mCallback.onDataChanged();
             mCallback.onRoleChanged();
         }
 
         @JavascriptInterface
         public void handleParticipantLeft(String Id) {
-            mParticipants.remove(getParticipant(Id));
+            synchronized(mParticipants) {
+                mParticipants.remove(getParticipant(Id));
+            }
             mCallback.onDataChanged();
         }
 
@@ -230,14 +238,18 @@ public class WebAppClient {
         }
 
         @JavascriptInterface
+        public void endCall() {
+            mCallback.onEndCall();
+        }
+
+        @JavascriptInterface
         public void error() {
-            leave();
-            mCallback.onForceEject();
+            mCallback.onError();
         }
 
         @JavascriptInterface
         public void handleParticpantAudioChange(String Id, String isMuted) {
-            getParticipant(Id).setIsMuted(Boolean.parseBoolean(isMuted));
+            Objects.requireNonNull(getParticipant(Id)).setIsMuted(Boolean.parseBoolean(isMuted));
             mCallback.onDataChanged();
         }
 

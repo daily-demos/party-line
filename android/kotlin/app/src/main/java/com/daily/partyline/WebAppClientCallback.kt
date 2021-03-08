@@ -1,11 +1,13 @@
 package com.daily.partyline
 
 interface WebAppClientCallback {
-    open fun setRoomName(roomName: String?)
-    open fun onJoinedMeeting()
-    open fun onTick(timer: String?)
-    open fun onDataChanged()
-    open fun onForceEject()
-    open fun onRoleChanged()
-    open fun onAudioStateChanged(isMuted: Boolean)
+    fun setRoomName(roomName: String?)
+    fun onJoinedMeeting()
+    fun onTick(timer: String?)
+    fun onDataChanged()
+    fun onForceEject()
+    fun onError()
+    fun onRoleChanged()
+    fun onEndCall()
+    fun onAudioStateChanged(isMuted: Boolean)
 }

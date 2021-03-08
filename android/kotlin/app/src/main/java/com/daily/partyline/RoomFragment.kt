@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.emoji.bundled.BundledEmojiCompatConfig
 import androidx.emoji.text.EmojiCompat
@@ -141,7 +142,7 @@ class RoomFragment : Fragment(), WebAppClientCallback {
     }
 
     private fun showControls() {
-        val me = getParticipant(Participant.Companion.myId)
+        val me = getParticipant(Participant.myId)
         if (me?.getIsModerator() == true) {
             binding.toggleButton.visibility = View.VISIBLE
             binding.raiseButton.visibility = View.GONE
@@ -168,8 +169,10 @@ class RoomFragment : Fragment(), WebAppClientCallback {
     }
 
     fun getParticipant(Id: String?): Participant? {
-        for (p in participants) {
-            if (p?.getId().equals(Id, ignoreCase = true)) return p
+        synchronized(participants) {
+            for (p in participants) {
+                if (p?.getId().equals(Id, ignoreCase = true)) return p
+            }
         }
         return null
     }
@@ -220,6 +223,39 @@ class RoomFragment : Fragment(), WebAppClientCallback {
 
     override fun onForceEject() {
         requireActivity().runOnUiThread {
+            client?.leave()
+            binding.progressbar.setVisibility(View.INVISIBLE);
+            val navController = Navigation.findNavController(binding.getRoot())
+            navController.popBackStack()
+        }
+    }
+
+    override fun onError() {
+        requireActivity().runOnUiThread {
+            val text: CharSequence = "Something went wrong! Make sure the code is correct and the room exists"
+            val duration = Toast.LENGTH_LONG
+            val toast = Toast.makeText(requireActivity(), text, duration)
+            toast.show()
+            client?.leave()
+            binding.progressbar.setVisibility(View.INVISIBLE)
+            val navController = Navigation.findNavController(binding.root)
+            navController.popBackStack()
+        }
+    }
+
+    override fun onEndCall() {
+        requireActivity().runOnUiThread {
+            if (Objects.requireNonNull(getParticipant(Participant.myId))!!.getIsModerator()!!) {
+                synchronized(participants) {
+                    for (p in participants) {
+                        if (p?.getId() != Participant.myId) {
+                            client?.eject(p?.getId())
+                        }
+                    }
+                }
+            }
+            client?.leave()
+            binding.progressbar.setVisibility(View.INVISIBLE)
             val navController = Navigation.findNavController(binding.getRoot())
             navController.popBackStack()
         }
