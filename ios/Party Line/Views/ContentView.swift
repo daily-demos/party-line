@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State
-    private var client: Client? = nil
+    @ObservedObject
+    private var client: Client = .init(
+        serverURL: Client.demoServerURL
+    )
 
     @State
     private var firstName: String = ""
@@ -12,10 +14,6 @@ struct ContentView: View {
 
     @State
     private var roomName: String = ""
-
-    var roomIsPresented: Binding<Bool> {
-        self.$client.mappedToBool()
-    }
 
     private var headerView: some View {
         HeaderView()
@@ -63,6 +61,18 @@ struct ContentView: View {
         }
     }
 
+    private var isSigninButtonDisabled: Bool {
+        guard self.firstName.isEmpty else {
+            return false
+        }
+
+        guard !self.client.isReady else {
+            return false
+        }
+
+        return true
+    }
+
     private var signinButton: some View {
         return Button(action: self.signIn) {
             Text(self.buttonTitle)
@@ -73,7 +83,7 @@ struct ContentView: View {
                 .background(Color.Daily.accentColor)
                 .cornerRadius(10.0)
         }
-        .disabled(self.firstName.isEmpty)
+        .disabled(self.isSigninButtonDisabled)
     }
 
     private var learnMoreView: some View {
@@ -105,8 +115,11 @@ struct ContentView: View {
             }
             .padding(30)
         }
+        .onAppear {
+            self.client.prepareIfNeeded()
+        }
         .fullScreenCover(
-            isPresented: self.roomIsPresented,
+            isPresented: self.$client.roomIsPresented,
             onDismiss: self.signOut
         ) {
             if let client = self.client {
@@ -137,17 +150,20 @@ struct ContentView: View {
             fatalError("Unreachable.")
         }
 
-        let serverURL = Client.demoServerURL
-
-        self.client = Client(
-            userName: userName,
-            roomName: roomName,
-            serverURL: serverURL
-        )
+        if let roomName = roomName {
+            self.client.joinRoom(
+                userName: userName,
+                roomName: roomName
+            )
+        } else {
+            self.client.createAndJoinRoom(
+                userName: userName
+            )
+        }
     }
 
     func signOut() {
-        self.client = nil
+        self.client.leaveRoom()
     }
 }
 

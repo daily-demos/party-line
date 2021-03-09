@@ -6,18 +6,88 @@ import os.log
 
 /// <#Description#>
 final class Client: NSObject, ObservableObject {
-    /// The username to use when joining a room.
-    let userName: String
+    /// The client's state.
+    enum State: Equatable {
+        case uninitialized
+        case joining(userName: String, roomName: String?)
+        case joined(room: Room)
 
-    /// The name of the room to connect to.
-    var roomName: String?
+        var isPresentable: Bool {
+            self != .uninitialized
+        }
+    }
+
+    enum Error {
+        case unknown
+        case javascript(message: String)
+        case webview(message: String)
+        case http(message: String)
+        case api(message: String)
+
+        var title: String {
+            switch self {
+            case .unknown:
+                return "Unknown Error"
+            case .javascript(_):
+                return "Javascript Error"
+            case .webview(_):
+                return "Webview Error"
+            case .http(_):
+                return "HTTP Error"
+            case .api(_):
+                return "API Error"
+            }
+        }
+
+        var message: String {
+            switch self {
+            case .unknown:
+                return ""
+            case .javascript(message: let message):
+                return message
+            case .webview(message: let message):
+                return message
+            case .http(message: let message):
+                return message
+            case .api(message: let message):
+                return message
+            }
+        }
+    }
 
     /// The Daily account server to connect to.
     let serverURL: URL
 
-    /// The room currently joined by `self`.
+    /// The client's current state.
     @Published
-    var room: Room?
+    private(set) var state: State = .uninitialized {
+        didSet {
+            self.roomIsPresented = self.state.isPresentable
+        }
+    }
+
+    @Published
+    var roomIsPresented: Bool = false
+
+    var room: Room? {
+        guard case .joined(room: let room) = self.state else {
+            return nil
+        }
+        return room
+    }
+
+    @Published
+    var error: Error? = nil {
+        didSet {
+            self.errorIsPresented = self.error != nil
+        }
+    }
+
+    @Published
+    var errorIsPresented: Bool = false
+
+    @Published
+    private(set) var isReady: Bool = false
 
     /// The room's participants with speaking permissions.
     @Published
@@ -67,7 +137,7 @@ final class Client: NSObject, ObservableObject {
 
     /// The expected expiration date
     var expirationDate: Date {
-        guard let room = self.room else {
+        guard case .joined(room: let room) = self.state else {
             // If we haven't yet retrieved a room object
             // return the upper bound instead:
             return Date().addingTimeInterval(Client.maxDuration)
@@ -103,7 +173,7 @@ final class Client: NSObject, ObservableObject {
     private static var pageURL: URL {
         // The source file behind this URL can be found at `react/public/ios-bridge.html`
         // along with an explanation of why it needs to be hosted externally for now:
-        URL(string: "https://audio-only-server.netlify.app/static/bridge.html")!
+        URL(string: "https://partyline.daily.co/ios-bridge.html")!
     }
 
     private static let eventsMessageHandlerName: String = "events"
@@ -114,26 +184,17 @@ final class Client: NSObject, ObservableObject {
 
     /// Creates a client configured with the provided arguments.
     /// - Parameters:
-    ///   - userName: The username to join rooms with.
-    ///   - roomName: The room's name to join.
     ///   - serverURL: The room's server URL
     init(
-        userName: String,
-        roomName: String?,
         serverURL: URL
     ) {
         logger.trace(#function)
 
-        self.userName = userName
-        self.roomName = roomName
         self.serverURL = serverURL
-        self.room = nil
 
         super.init()
 
         self.webView.navigationDelegate = self
-
-        self.attachHeadlessWebViewToViewHierarchy()
 
         self.loadWebView()
     }
@@ -142,12 +203,12 @@ final class Client: NSObject, ObservableObject {
     deinit {
         logger.trace(#function)
 
-        self.detachHeadlessWebViewFromViewHierarchy()
+        self.detachFromViewHierarchyIfNeeded()
     }
 
     /// Creates a pre-configured webview.
     /// - Parameter configure: additional configurations
-    /// - Returns: <#description#>
+    /// - Returns: Pre-configured webview
     private static func makeWebView(
         messageHandler: WKScriptMessageHandler
 //        configure: (WKWebViewConfiguration) -> ()
@@ -204,9 +265,13 @@ final class Client: NSObject, ObservableObject {
         return webView
     }
 
+    func prepareIfNeeded() {
+        self.attachToViewHierarchyIfNeeded()
+    }
+
     /// Unfortunately the only way to ensure a webview actually
     /// fully works is to attach it to the app's view hierarchy.
-    private func attachHeadlessWebViewToViewHierarchy() {
+    private func attachToViewHierarchyIfNeeded() {
         guard let window = UIApplication.shared.windows.first else {
             logger.warning(
                 "Could not attach Webview to view hierarchy: Expected window, found none."
@@ -225,7 +290,7 @@ final class Client: NSObject, ObservableObject {
 
     /// Removes the headless webview from the view hierarchy to
     /// prevent leaking it on deinit.
-    private func detachHeadlessWebViewFromViewHierarchy() {
+    private func detachFromViewHierarchyIfNeeded() {
         self.webView.removeFromSuperview()
     }
 
@@ -238,37 +303,33 @@ final class Client: NSObject, ObservableObject {
         self.webView.load(URLRequest(url: pageURL))
     }
 
-    /// Attempts to join a room (and create one if necessary).
-    func start() {
-        if let roomName = self.roomName {
-            self.joinRoom(
-                url: self.serverURL.appendingPathComponent(roomName)
-            )
-        } else {
-            self.createAndJoinRoom()
-        }
-    }
-
     // MARK: - Room Initilization
 
     /// Creates a room and joins it as the owner.
-    func createAndJoinRoom() {
+    func createAndJoinRoom(userName: String) {
+        self.state = .joining(userName: userName, roomName: nil)
+
         self.callJavascript(
             """
             createAndJoinRoomNonBlocking({
-                userName: "\(self.userName)"
+                userName: "\(userName)"
             });
             """
         )
     }
 
     /// Joines a room at `url` as a listener.
-    func joinRoom(url: URL) {
+    func joinRoom(userName: String, roomName: String) {
+        self.state = .joining(userName: userName, roomName: roomName)
+
+        let url = self.serverURL.appendingPathComponent(roomName)
+        let roomUrl = url.absoluteString
+
         self.callJavascript(
             """
             joinRoomNonBlocking({
-                userName: "\(self.userName)",
-                roomUrl: "\(url.absoluteString)"
+                userName: "\(userName)",
+                roomUrl: "\(roomUrl)"
             });
             """
         )
@@ -276,6 +337,8 @@ final class Client: NSObject, ObservableObject {
 
     // Leaves the currently joined room.
     func leaveRoom() {
+        self.state = .uninitialized
+
         self.callJavascript(
             """
             leaveRoomNonBlocking({});
@@ -375,15 +438,16 @@ final class Client: NSObject, ObservableObject {
     ///   - completionHandler: completion handler
     private func callJavascript(
         _ javascript: String,
-        completionHandler: ((Result<Any, Error>) -> ())? = nil
+        completionHandler: ((Result<Any, Swift.Error>) -> ())? = nil
     ) {
         logger.debug("Running Javascript: \(javascript)")
 
         self.webView.evaluateJavaScript(javascript) { (response, error) in
-            let result: Result<Any, Error>
+            let result: Result<Any, Swift.Error>
 
             if let error = error {
                 logger.error("Error running Javascript: \(error.localizedDescription)")
+                self.error = .javascript(message: error.localizedDescription)
                 result = .failure(error)
             } else {
                 result = .success(response as Any)
@@ -404,16 +468,17 @@ extension Client: WKNavigationDelegate {
     ) {
         logger.trace(#function)
 
-        self.start()
+        self.isReady = true
     }
 
     /// Not stricly necessary, but rather useful when debugging.
     func webView(
         _ webView: WKWebView,
         didFail navigation: WKNavigation!,
-        withError error: Error
+        withError error: Swift.Error
     ) {
         logger.error("Error: \(error.localizedDescription)")
+        self.error = .webview(message: error.localizedDescription)
     }
 
     /// Not stricly necessary, but rather useful when debugging.
@@ -425,6 +490,9 @@ extension Client: WKNavigationDelegate {
         if let response = navigationResponse.response as? HTTPURLResponse {
             if response.statusCode >= 400 {
                 logger.error("Error: \(navigationResponse)")
+
+                self.error = .http(message: "Status code \(response.statusCode)")
+                self.isReady = false
             }
         }
 
@@ -565,7 +633,9 @@ extension Client: WKScriptMessageHandler {
     ) {
         logger.trace(#function)
 
-        self.room = event.room
+        print("Room: \(event.room)")
+
+        self.state = .joined(room: event.room)
     }
 
     private func handleDemoCreatedToken(
@@ -579,7 +649,9 @@ extension Client: WKScriptMessageHandler {
     ) {
         logger.trace(#function)
 
-        self.room = event.room
+        print("Room: \(event.room)")
+
+        self.state = .joined(room: event.room)
     }
 
     private func handleAppMessageEvent(
@@ -593,7 +665,7 @@ extension Client: WKScriptMessageHandler {
     ) {
         logger.error("Daily Error: \(event.message)")
 
-        self.leaveRoom()
+        self.error = .api(message: event.message)
     }
 
     private func handleJoinedMeetingEvent(

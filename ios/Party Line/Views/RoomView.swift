@@ -168,6 +168,17 @@ struct RoomView: View {
                 self.leave()
             }
         }
+        .alert(isPresented: self.$client.errorIsPresented) {
+            let error = self.client.error ?? .unknown
+
+            return Alert(
+                title: Text(error.title),
+                message: Text(error.message),
+                dismissButton: .default(Text("OK")) {
+                    self.client.leaveRoom()
+                }
+            )
+        }
     }
 
     private func toggleMic() {
@@ -205,8 +216,6 @@ struct RoomView: View {
 struct RoomView_Previews: PreviewProvider {
     static var client: Client {
         .init(
-            userName: "Jane Doe",
-            roomName: "test",
             serverURL: URL(string: "https://example.com")!
         )
     }
