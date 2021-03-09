@@ -175,7 +175,7 @@ struct RoomView: View {
                 title: Text(error.title),
                 message: Text(error.message),
                 dismissButton: .default(Text("OK")) {
-                    self.client.leaveRoom()
+                    self.leave()
                 }
             )
         }
