@@ -105,8 +105,7 @@ struct ParticipantsGridView_Previews: PreviewProvider {
                 isLocal: false,
                 isOwner: false,
                 isMicrophoneEnabled: false,
-                isHandRaised: false,
-                sortKey: "Jane Doe_LST"
+                isHandRaised: false
             )
         }
     }
@@ -121,8 +120,7 @@ struct ParticipantsGridView_Previews: PreviewProvider {
                 isLocal: false,
                 isOwner: false,
                 isMicrophoneEnabled: false,
-                isHandRaised: true,
-                sortKey: "✋ John Doe_LST"
+                isHandRaised: true
             )
         }
     }

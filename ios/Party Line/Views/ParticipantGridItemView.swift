@@ -180,8 +180,7 @@ struct ParticipantGridItemView_Previews: PreviewProvider {
                 isLocal: true,
                 isOwner: false,
                 isMicrophoneEnabled: true,
-                isHandRaised: false,
-                sortKey: "Jane Doe"
+                isHandRaised: false
             ),
             localIsModerator: true
         )

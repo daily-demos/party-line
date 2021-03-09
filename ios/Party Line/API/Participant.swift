@@ -17,8 +17,6 @@ struct Participant: Decodable {
     let isMicrophoneEnabled: Bool
     let isHandRaised: Bool
 
-    let sortKey: String
-
     var isModerator: Bool {
         self.role == .moderator
     }
@@ -76,8 +74,7 @@ struct Participant: Decodable {
             isLocal: isLocal,
             isOwner: isOwner,
             isMicrophoneEnabled: isMicrophoneEnabled,
-            isHandRaised: parsedUsername.isHandRaised,
-            sortKey: rawUsername
+            isHandRaised: parsedUsername.isHandRaised
         )
     }
 
@@ -89,8 +86,7 @@ struct Participant: Decodable {
         isLocal: Bool,
         isOwner: Bool,
         isMicrophoneEnabled: Bool,
-        isHandRaised: Bool,
-        sortKey: String
+        isHandRaised: Bool
     ) {
         self.sessionID = sessionID
         self.userID = userID
@@ -100,7 +96,6 @@ struct Participant: Decodable {
         self.isOwner = isOwner
         self.isMicrophoneEnabled = isMicrophoneEnabled
         self.isHandRaised = isHandRaised
-        self.sortKey = sortKey
     }
 }
 

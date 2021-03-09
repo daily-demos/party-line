@@ -43,12 +43,22 @@ final class Client: NSObject, ObservableObject {
                 }
             }
 
-            let userNameComparator: (Participant, Participant) -> Bool = {
-                $0.sortKey < $1.sortKey
+            speakers.sort {
+                $0.username < $1.username
             }
 
-            speakers.sort(by: userNameComparator)
-            listeners.sort(by: userNameComparator)
+            // We want listeners to be sorted, too.
+            // But those with a raised hand should jump to front:
+            listeners.sort {
+                switch ($0.isHandRaised, $1.isHandRaised) {
+                case (true, false):
+                    return true
+                case (false, true):
+                    return false
+                case (true, true), (false, false):
+                    return $0.username < $1.username
+                }
+            }
 
             self.speakers = speakers
             self.listeners = listeners
