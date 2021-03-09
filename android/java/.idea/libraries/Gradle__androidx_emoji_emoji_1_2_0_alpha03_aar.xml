@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="Gradle: androidx.emoji:emoji:1.2.0-alpha03@aar">
+    <ANNOTATIONS>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/6b1f388a493144b9c1a668686c6d5155/emoji-1.2.0-alpha03/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/6b1f388a493144b9c1a668686c6d5155/emoji-1.2.0-alpha03/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/6b1f388a493144b9c1a668686c6d5155/emoji-1.2.0-alpha03/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/6b1f388a493144b9c1a668686c6d5155/emoji-1.2.0-alpha03/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/6b1f388a493144b9c1a668686c6d5155/emoji-1.2.0-alpha03/jars/libs/repackaged-Release.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.emoji/emoji/1.2.0-alpha03/f0f4574b5671ecf1a0962cecea83787269b75c14/emoji-1.2.0-alpha03-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

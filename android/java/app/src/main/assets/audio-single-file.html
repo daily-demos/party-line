@@ -1,0 +1,292 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/@daily-co/daily-js"></script>
+  </head>
+  <body>
+    <script>
+      let userName, roomUrl, roomName, call;
+
+      // ---- call state ----
+
+      async function joinRoom({ moderator } = {}) {
+        if (moderator) {
+          name = userName.replace(LISTENER_TAG, MODERATOR_TAG);
+          userName = name;
+        }
+
+        if (call) {
+          call.leave();
+        } else {
+          call = DailyIframe.createCallObject({
+            audioSource: true, // start with audio on to get mic permission from participant at start
+            videoSource: false,
+            dailyConfig: {
+              experimentalChromeVideoMuteLightOff: true,
+            },
+          });
+          window.call = call;
+
+          call.on('joined-meeting', () => {
+            console.log('[JOINED MEETING]');
+            Android.joinedMeeting(call.participants().local.session_id);
+          });
+          call.on('error', (e) => {
+            Android.error();
+            console.error(e);
+          });
+
+          call.on('participant-joined', handleParticipantJoinedOrUpdated);
+          call.on('participant-updated', handleParticipantJoinedOrUpdated);
+          call.on('participant-left', handleParticipantLeft);
+          call.on('app-message', handleAppMessage);
+
+          call.on('active-speaker-change', handleActiveSpeakerChange);
+
+          call.on('track-started', playTrack);
+          call.on('track-stopped', destroyTrack);
+        }
+
+        Android.updateState(roomName);
+
+        let token = '';
+        if (moderator) {
+          // join as owner
+          token = await createToken(roomName);
+        }
+
+        await call.join({ url: roomUrl, userName: userName, token });
+        // now mute, so everyone joining is muted by default
+        call.setLocalAudio(false);
+
+        // set up countdown timer
+        clearInterval(window.countdownInterval);
+        let roomInfo = await call.room();
+        let exp = roomInfo.config.exp * 1000;
+        window.countdownInterval = setInterval(() => {
+          let secs = Math.round((exp - Date.now()) / 1000);
+          var countDown =
+            Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2);
+
+          if (secs === 0) {
+            Android.endCall();
+          }
+          Android.updateTimer(countDown);
+        }, 1000);
+      }
+
+      // ---- local controls ----
+
+      function toggleMic() {
+        call.setLocalAudio(!call.localAudio());
+        Android.handleMute(call.localAudio());
+      }
+
+      const SPEAKER_TAG = 'SPK';
+      const LISTENER_TAG = 'LST';
+      const MODERATOR_TAG = 'MOD';
+      const HAND_RAISED_TAG = '✋ ';
+
+      // participant event handlers
+
+      function handleParticipantJoinedOrUpdated(evt) {
+        let count = Object.entries(call.participants()).length;
+
+        console.log('[PARTICIPANT JOINED/UPDATED]', evt.participant);
+        let name = evt.participant.user_name || 'anonymous';
+
+        Android.handleParticipantJoinedOrUpdated(
+          name,
+          evt.participant.session_id,
+          evt.participant.owner
+        );
+      }
+
+      function handleParticipantLeft(evt) {
+        console.log('[PARTICIPANT LEFT]', evt);
+        Android.handleParticipantLeft(evt.participant.session_id);
+      }
+
+      function handleActiveSpeakerChange(evt) {
+        console.log('[ACTIVE SPEAKER CHANGE]', evt);
+        Android.handleActiveSpeakerChange(evt.activeSpeaker.peerId);
+      }
+
+      // peer-to-peer message passing
+
+      const MSG_MAKE_MODERATOR = 'make-moderator';
+      const MSG_MAKE_SPEAKER = 'make-speaker';
+      const MSG_MAKE_LISTENER = 'make-listener';
+      const MSG_FORCE_MUTE = 'force-mute';
+      const MSG_FORCE_EJECT = 'force-eject';
+
+      async function handleAppMessage(evt) {
+        console.log('[APP MESSAGE]', evt);
+        try {
+          switch (evt.data.msg) {
+            case MSG_MAKE_MODERATOR:
+              Android.handleParticipantLeft(
+                call.participants().local.session_id
+              );
+              await call.leave();
+              await joinRoom({ moderator: true });
+              break;
+            case MSG_MAKE_SPEAKER:
+              console.log('!!! SPEAKER_TAG', name);
+              becomeSpeaker();
+              break;
+            case MSG_MAKE_LISTENER:
+              becomeListener();
+              break;
+            case MSG_FORCE_EJECT:
+              Android.handleForceEject();
+              break;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // speaker/listener switching
+
+      function becomeSpeaker() {
+        let name = call.participants().local.user_name;
+        name = setHandRaiseTagInUserName(name, false);
+        name = setSpeakingTagInUserName(name, SPEAKER_TAG);
+        call.setUserName(name);
+        console.log('!!! SPEAKER_TAG', name);
+
+        Android.handlePromote(name, call.participants().local.session_id);
+      }
+
+      function becomeListener() {
+        let name = call.participants().local.user_name;
+        name = setSpeakingTagInUserName(name);
+        name = name.replace(SPEAKER_TAG, '');
+        name += '' + LISTENER_TAG;
+
+        call.setUserName(name);
+        call.setLocalAudio(false);
+
+        Android.handlePromote(name, call.participants().local.session_id);
+      }
+
+      function setSpeakingTagInUserName(name, tag = null) {
+        name = name.replace(SPEAKER_TAG, '');
+        name = name.replace(LISTENER_TAG, '');
+        if (tag) {
+          name += '' + tag;
+        }
+
+        return name;
+      }
+
+      function isHandRaisedInUserName(name) {
+        return name.includes(HAND_RAISED_TAG);
+      }
+
+      function setHandRaiseTagInUserName(name, bool) {
+        name = name.replace(HAND_RAISED_TAG, '');
+        if (bool) {
+          name = HAND_RAISED_TAG + name;
+        }
+        return name;
+      }
+
+      // ---- room and token creation ----
+
+      async function createRoom() {
+        let res = await fetch(
+          'https://partyline.daily.co/.netlify/functions/room',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              properties: {
+                // expire in 10 minutes
+                exp: Math.round(Date.now() / 1000) + 10 * 60,
+                eject_at_room_exp: true,
+              },
+            }),
+          }
+        );
+        let roomData = await res.json();
+        console.log('!!! room data', roomData);
+        return { roomUrl: roomData.url, roomName: roomData.name };
+      }
+
+      async function createToken(roomName) {
+        if (!roomName) {
+          console.error('please do not create tokens with no room name');
+          Android.error();
+          return '';
+        }
+
+        let res = await fetch(
+          'https://partyline.daily.co/.netlify/functions/token',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              properties: {
+                // expire in 10 minutes
+                exp: Math.round(Date.now() / 1000) + 10 * 60,
+                room_name: roomName,
+                is_owner: true,
+              },
+            }),
+          }
+        );
+        let tokenData = await res.json();
+        console.log('!!! token data', tokenData);
+        return tokenData.token;
+      }
+
+      // ---- start and stop audio tracks ----
+
+      function playTrack(evt) {
+        console.log(
+          '[TRACK STARTED]',
+          evt.participant && evt.participant.session_id
+        );
+
+        // sanity check to make sure this is an audio track
+        if (!(evt.track && evt.track.kind === 'audio')) {
+          return;
+        }
+
+        // don't play the local audio track (echo!)
+        if (evt.participant.local) {
+          return;
+        }
+
+        Android.handleParticpantAudioChange(evt.participant.session_id, false);
+
+        let audioEl = document.createElement('audio');
+        document.body.appendChild(audioEl);
+        audioEl.srcObject = new MediaStream([evt.track]);
+        audioEl.play();
+      }
+
+      function destroyTrack(evt) {
+        console.log(
+          '[TRACK STOPPED]',
+          (evt.participant && evt.participant.session_id) || '[left meeting]'
+        );
+
+        Android.handleParticpantAudioChange(evt.participant.session_id, true);
+        let els = Array.from(document.getElementsByTagName('video')).concat(
+          Array.from(document.getElementsByTagName('audio'))
+        );
+        for (let el of els) {
+          if (el.srcObject && el.srcObject.getTracks()[0] === evt.track) {
+            el.remove();
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
