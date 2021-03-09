@@ -60,7 +60,7 @@ final class Client: NSObject, ObservableObject {
         guard let room = self.room else {
             // If we haven't yet retrieved a room object
             // return the upper bound instead:
-            return Date().addingTimeInterval(Client.maxDuration * 10.0)
+            return Date().addingTimeInterval(Client.maxDuration)
         }
 
         return room.config.expirationDate
