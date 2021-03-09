@@ -314,7 +314,9 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
             Toast toast = Toast.makeText(requireActivity(), text, duration);
             toast.show();
 
-            mClient.leave();
+            if (mClient != null) {
+                mClient.leave();
+            }
             mBinding.progressbar.setVisibility(View.INVISIBLE);
 
             NavController navController = Navigation.findNavController(mBinding.getRoot());
