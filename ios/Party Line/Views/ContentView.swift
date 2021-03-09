@@ -135,13 +135,15 @@ struct ContentView: View {
             return
         }
 
-        let roomName = (self.roomName.isEmpty) ? nil : self.roomName
+        let firstName = self.firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastName = self.lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let roomName = self.roomName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let role: Participant.Role = (self.roomName.isEmpty) ? .moderator : .listener
+        let role: Participant.Role = roomName.isEmpty ? .moderator : .listener
 
         let userName: String
 
-        switch (self.firstName, self.lastName) {
+        switch (firstName, lastName) {
         case (firstName, ""):
             userName = "\(firstName)_\(role.rawValue)"
         case (firstName, lastName):
@@ -150,14 +152,14 @@ struct ContentView: View {
             fatalError("Unreachable.")
         }
 
-        if let roomName = roomName {
+        if roomName.isEmpty {
+            self.client.createAndJoinRoom(
+                userName: userName
+            )
+        } else {
             self.client.joinRoom(
                 userName: userName,
                 roomName: roomName
-            )
-        } else {
-            self.client.createAndJoinRoom(
-                userName: userName
             )
         }
     }
