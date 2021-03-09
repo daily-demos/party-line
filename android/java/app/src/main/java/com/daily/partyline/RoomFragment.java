@@ -330,13 +330,17 @@ public class RoomFragment extends Fragment implements WebAppClientCallback{
                 synchronized(mParticipants) {
                     for (Participant p : mParticipants) {
                         if (!p.getId().equals(Participant.myId)) {
-                            mClient.eject(p.getId());
+                            if (mClient != null) {
+                                mClient.eject(p.getId());
+                            }
                         }
                     }
                 }
             }
 
-            mClient.leave();
+            if (mClient != null) {
+                mClient.leave();
+            }
             mBinding.progressbar.setVisibility(View.INVISIBLE);
 
             NavController navController = Navigation.findNavController(mBinding.getRoot());
