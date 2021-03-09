@@ -657,6 +657,21 @@ extension Client: WKScriptMessageHandler {
     private func handleAppMessageEvent(
         _ event: AppMessageEvent
     ) {
+        guard case .object(let data) = event.data else {
+            return
+        }
+
+        guard case .string(let message) = data["msg"] else {
+            return
+        }
+
+        switch message {
+        case "force-eject":
+            self.leaveRoom()
+        case _:
+            break
+        }
+
         logger.trace(#function)
     }
 
