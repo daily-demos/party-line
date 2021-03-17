@@ -22,5 +22,6 @@ Special thanks to our main contributors 👏:
 - [Mohamed Moubarak](https://github.com/moubarak)
 - [Vincent Esche](https://github.com/regexident)
 - [Phil Miller](https://github.com/philmillman)
+- [Stephen Meszaros](https://github.com/stephenmeszaros)
 - [Kimberlee Johnson](https://github.com/kimberleejohnson)
 - [Kwindla Hultman Kramer](https://github.com/kwindla)
