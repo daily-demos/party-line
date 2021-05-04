@@ -30,6 +30,8 @@ export const CallProvider = ({ children }) => {
   const createRoom = async (roomName) => {
     if (roomName) return roomName;
     const response = await fetch(
+      // CHANGE THIS TO YOUR NETLIFY URL
+      // EX: https://myapp.netlify.app/.netlify/functions/room
       "https://partyline.daily.co/.netlify/functions/room",
       {
         method: "POST",
@@ -45,6 +47,8 @@ export const CallProvider = ({ children }) => {
       setError("Eep! We could not create a token");
     }
     const response = await fetch(
+      // CHANGE THIS TO YOUR NETLIFY URL
+      // EX: https://myapp.netlify.app/.netlify/functions/room
       "https://partyline.daily.co/.netlify/functions/token",
       {
         method: "POST",
@@ -91,6 +95,8 @@ export const CallProvider = ({ children }) => {
     });
 
     const options = {
+      // CHANGE THIS TO YOUR DAILY DOMAIN
+      // EX: https://myaccount.daily.co/${roomInfo?.name}
       url: `https://devrel.daily.co/${roomInfo?.name}`,
       userName,
     };

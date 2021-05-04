@@ -121,6 +121,8 @@ Related tickets:
         console.log('[CREATING ROOM]');
 
         let res = await fetch(
+          // CHANGE THIS TO YOUR NETLIFY URL
+          // EX: https://myapp.netlify.app/.netlify/functions/room
           'https://partyline.daily.co/.netlify/functions/room',
           {
             method: 'POST',
@@ -150,6 +152,8 @@ Related tickets:
         console.log('[CREATING TOKEN]');
 
         let res = await fetch(
+          // CHANGE THIS TO YOUR NETLIFY URL
+          // EX: https://myapp.netlify.app/.netlify/functions/room
           'https://partyline.daily.co/.netlify/functions/token',
           {
             method: 'POST',
