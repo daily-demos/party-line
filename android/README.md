@@ -27,3 +27,12 @@ Running the app on an emulator out-of-the-box as long as you set `targetSdkVersi
 ## Testing
 
 To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
+
+## Deployment
+
+Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+
+- android/java/app/src/main/assets/audio-single-file.html
+- android/kotlin/app/src/main/assets/audio-single-file.html
+- android/kotlin/app/src/main/java/com/daily/partyline/WebAppClient.kt
+- android/java/app/src/main/java/com/daily/partyline/WebAppClient.java

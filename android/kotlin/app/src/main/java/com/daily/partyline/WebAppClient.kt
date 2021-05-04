@@ -24,6 +24,9 @@ class WebAppClient {
     }
 
     // Interface
+    // CHANGE roomURL TO YOUR DAILY DOMAIN
+    // EX: https://myaccount.daily.co/
+
     private fun joinRoom() {
         webView?.evaluateJavascript(
                 "userName='" + userName + "_" + Participant.LISTENER_TAG + "';" +
