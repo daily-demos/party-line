@@ -22,3 +22,10 @@ This showcases a basic but complete audio chat app using [SwiftUI](https://devel
 ## Testing
 
 To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
+
+## Deployment
+
+Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+
+- ios/Party Line/API/Client.swift
+- react/public/ios-bridge.html

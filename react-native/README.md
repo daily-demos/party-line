@@ -44,3 +44,9 @@ To add more participants to your call, you can take advantage of the React demo 
 
 - [react-native-daily-js README](https://www.npmjs.com/package/@daily-co/react-native-daily-js)
 - [react-native-daily-js docs](https://docs.daily.co/reference#using-the-react-native-daily-js-library)
+
+## Deployment
+
+Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+
+- react-native/contexts/CallProvider.jsx

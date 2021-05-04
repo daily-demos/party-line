@@ -160,6 +160,8 @@ final class Client: NSObject, ObservableObject {
     private lazy var webView: WKWebView = Self.makeWebView(messageHandler: self)
 
     /// The Daily.co account's server URL.
+    /// CHANGE THIS TO YOUR DAILY DOMAIN
+    /// EX: https://myaccount.daily.co/${roomInfo?.name}
     static var demoServerURL: URL {
         return URL(string: "https://devrel.daily.co")!
     }
@@ -173,6 +175,8 @@ final class Client: NSObject, ObservableObject {
     private static var pageURL: URL {
         // The source file behind this URL can be found at `react/public/ios-bridge.html`
         // along with an explanation of why it needs to be hosted externally for now:
+        // CHANGE THIS TO YOUR NETLIFY URL
+        // EX: https://myapp.netlify.app/ios-bridge.html
         URL(string: "https://partyline.daily.co/ios-bridge.html")!
     }
 
