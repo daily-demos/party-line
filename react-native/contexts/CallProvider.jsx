@@ -49,7 +49,7 @@ export const CallProvider = ({children}) => {
     }
     const response = await fetch(
       // CHANGE THIS TO YOUR NETLIFY URL
-      // EX: https://myapp.netlify.app/.netlify/functions/room
+      // EX: https://myapp.netlify.app/.netlify/functions/token
       'https://partyline.daily.co/.netlify/functions/token',
       {
         method: 'POST',
