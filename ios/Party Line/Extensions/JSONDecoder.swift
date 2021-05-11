@@ -1,7 +1,7 @@
 import Foundation
 
 extension JSONDecoder {
-    static var daily: JSONDecoder {
+    static func daily() -> JSONDecoder {
         let decoder = JSONDecoder()
 
         decoder.dateDecodingStrategy = .custom { decoder in

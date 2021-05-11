@@ -541,7 +541,7 @@ extension Client: WKScriptMessageHandler {
         }
 
         do {
-            let decoder = JSONDecoder.daily
+            let decoder = JSONDecoder.daily()
             let message = try decoder.decode(EventMessage.self, from: data)
 
             print("Event:", message.action, "=>" , String(reflecting: message.event))
@@ -571,7 +571,8 @@ extension Client: WKScriptMessageHandler {
         }
 
         do {
-            let message = try JSONDecoder().decode(ConsoleMessage.self, from: data)
+            let decoder = JSONDecoder.daily()
+            let message = try decoder.decode(ConsoleMessage.self, from: data)
             switch message.level {
             case .log:
                 logger.log("WebView Console: \(message.content)")
@@ -601,7 +602,8 @@ extension Client: WKScriptMessageHandler {
         }
 
         do {
-            let message = try JSONDecoder().decode(ErrorMessage.self, from: data)
+            let decoder = JSONDecoder.daily()
+            let message = try decoder.decode(ErrorMessage.self, from: data)
             logger.error("WebView Error: \(message.content)")
         } catch let error {
             logger.error("Error decoding error message: \(error.localizedDescription)")
