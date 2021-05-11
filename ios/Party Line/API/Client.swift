@@ -553,7 +553,9 @@ extension Client: WKScriptMessageHandler {
                 logger.warning("Event content: \(String(describing: message.content as Any))")
             }
         } catch let error {
-            logger.error("Error decoding event message: \(error.localizedDescription)")
+            let messageString = String(data: data, encoding: .utf8)!
+            let errorMessage = String(reflecting: error)
+            logger.error("Error decoding event message: \(messageString) (Error: \(errorMessage))")
             return
         }
     }
@@ -584,7 +586,9 @@ extension Client: WKScriptMessageHandler {
                 logger.error("WebView Console: \(message.content)")
             }
         } catch let error {
-            logger.error("Error decoding console message: \(error.localizedDescription)")
+            let messageString = String(data: data, encoding: .utf8)!
+            let errorMessage = String(reflecting: error)
+            logger.error("Error decoding event message: \(messageString) (Error: \(errorMessage))")
             return
         }
     }
@@ -606,7 +610,9 @@ extension Client: WKScriptMessageHandler {
             let message = try decoder.decode(ErrorMessage.self, from: data)
             logger.error("WebView Error: \(message.content)")
         } catch let error {
-            logger.error("Error decoding error message: \(error.localizedDescription)")
+            let messageString = String(data: data, encoding: .utf8)!
+            let errorMessage = String(reflecting: error)
+            logger.error("Error decoding event message: \(messageString) (Error: \(errorMessage))")
             return
         }
     }
