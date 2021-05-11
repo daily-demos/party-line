@@ -1,6 +1,7 @@
 import Foundation
 
 enum JSONValue: Decodable {
+    case null
     case bool(Bool)
     case int(Int)
     case double(Double)
@@ -22,6 +23,8 @@ enum JSONValue: Decodable {
             self = .object(value)
         } else if let value = try? container.decode([JSONValue].self) {
             self = .array(value)
+        } else if container.decodeNil() {
+            self = .null
         } else {
             throw DecodingError.typeMismatch(
                 JSONValue.self,
@@ -37,6 +40,8 @@ enum JSONValue: Decodable {
 extension JSONValue: CustomStringConvertible {
     var description: String {
         switch self {
+        case .null:
+            return "null"
         case .bool(let value):
             return value.description
         case .int(let value):
