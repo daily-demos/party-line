@@ -126,9 +126,10 @@ struct RoomView: View {
     private func footerView(local: Participant?) -> some View {
         HStack {
             if let local = local {
-                self.microphoneButton(local: local)
-                if local.isListener {
-                    Spacer()
+                switch local.role {
+                case .moderator, .speaker:
+                    self.microphoneButton(local: local)
+                case .listener:
                     self.handButton(local: local)
                 }
             }
