@@ -56,25 +56,29 @@ struct Participant: Decodable {
 
         let rawUsername = try container.decode(String.self, forKey: .username)
 
-        guard let parsedUsername = ParsedUsername(rawValue: rawUsername) else {
-            throw DecodingError.typeMismatch(
-                JSONValue.self,
-                DecodingError.Context(
-                    codingPath: container.codingPath,
-                    debugDescription: "Not a valid username"
-                )
-            )
+        let username: String
+        let role: Role
+        let isHandRaised: Bool
+
+        if let parsedUsername = ParsedUsername(rawValue: rawUsername) {
+            username = parsedUsername.username
+            role = parsedUsername.role
+            isHandRaised = parsedUsername.isHandRaised
+        } else {
+            username = rawUsername
+            role = .listener
+            isHandRaised = false
         }
 
         self.init(
             sessionID: sessionID,
             userID: userID,
-            username: parsedUsername.username,
-            role: parsedUsername.role,
+            username: username,
+            role: role,
             isLocal: isLocal,
             isOwner: isOwner,
             isMicrophoneEnabled: isMicrophoneEnabled,
-            isHandRaised: parsedUsername.isHandRaised
+            isHandRaised: isHandRaised
         )
     }
 
