@@ -24,9 +24,10 @@ const InCall = () => {
   } = useCallState();
   console.log(participants);
 
-  const local = useMemo((p) => participants?.filter((p) => p?.local)[0], [
-    participants,
-  ]);
+  const local = useMemo(
+    (p) => participants?.filter((p) => p?.local)[0],
+    [participants]
+  );
 
   const mods = useMemo(
     () =>
@@ -53,7 +54,7 @@ const InCall = () => {
         {l?.map((p, i) => (
           <Participant
             participant={p}
-            key={i}
+            key={p.id}
             local={local}
             modCount={mods?.length}
           />
@@ -69,7 +70,7 @@ const InCall = () => {
         {s?.map((p, i) => (
           <Participant
             participant={p}
-            key={i}
+            key={p.id}
             local={local}
             modCount={mods?.length}
           />
