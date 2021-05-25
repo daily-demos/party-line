@@ -32,7 +32,9 @@ export const CallProvider = ({ children }) => {
     const response = await fetch(
       // CHANGE THIS TO YOUR NETLIFY URL
       // EX: https://myapp.netlify.app/.netlify/functions/room
-      "https://partyline.daily.co/.netlify/functions/room",
+      `${
+        process.env.NETLIFY_URL || "https://partyline.daily.co"
+      }/.netlify/functions/room`,
       {
         method: "POST",
       }
@@ -49,7 +51,9 @@ export const CallProvider = ({ children }) => {
     const response = await fetch(
       // CHANGE THIS TO YOUR NETLIFY URL
       // EX: https://myapp.netlify.app/.netlify/functions/token
-      "https://partyline.daily.co/.netlify/functions/token",
+      `${
+        process.env.NETLIFY_URL || "https://partyline.daily.co"
+      }/.netlify/functions/token`,
       {
         method: "POST",
         body: JSON.stringify({ properties: { room_name: roomName } }),
@@ -98,7 +102,9 @@ export const CallProvider = ({ children }) => {
       const options = {
         // CHANGE THIS TO YOUR DAILY DOMAIN
         // EX: https://myaccount.daily.co/${roomInfo?.name}
-        url: `https://devrel.daily.co/${roomInfo?.name}`,
+        url: `${process.env.DAILY_DOMAIN || "https://devrel.daily.co"}/${
+          roomInfo?.name
+        }`,
         userName,
       };
       if (roomInfo?.token) {
