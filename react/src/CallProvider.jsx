@@ -61,80 +61,83 @@ export const CallProvider = ({ children }) => {
     return result;
   };
 
-  const joinRoom = async ({ userName, name, moderator }) => {
-    if (callFrame) {
-      callFrame.leave();
-    }
+  const joinRoom = useCallback(
+    async ({ userName, name, moderator }) => {
+      if (callFrame) {
+        callFrame.leave();
+      }
 
-    let roomInfo = { name };
-    /**
-     * The first person to join will need to create the room first
-     */
-    if (!name && !moderator) {
-      roomInfo = await createRoom();
-    }
-    setRoom(roomInfo);
+      let roomInfo = { name };
+      /**
+       * The first person to join will need to create the room first
+       */
+      if (!name && !moderator) {
+        roomInfo = await createRoom();
+      }
+      setRoom(roomInfo);
 
-    /**
-     * When a moderator makes someone else a moderator,
-     * they first leave and then rejoin with a token.
-     * In that case, we create a token for the new mod here.
-     */
-    let newToken;
-    if (moderator) {
-      // create a token for new moderators
-      newToken = await createToken(room?.name);
-    }
+      /**
+       * When a moderator makes someone else a moderator,
+       * they first leave and then rejoin with a token.
+       * In that case, we create a token for the new mod here.
+       */
+      let newToken;
+      if (moderator) {
+        // create a token for new moderators
+        newToken = await createToken(room?.name);
+      }
 
-    const call = Daily.createCallObject({
-      audioSource: true, // start with audio on to get mic permission from user at start
-      videoSource: false,
-      dailyConfig: {
-        experimentalChromeVideoMuteLightOff: true,
-      },
-    });
-
-    const options = {
-      // CHANGE THIS TO YOUR DAILY DOMAIN
-      // EX: https://myaccount.daily.co/${roomInfo?.name}
-      url: `https://devrel.daily.co/${roomInfo?.name}`,
-      userName,
-    };
-    if (roomInfo?.token) {
-      options.token = roomInfo?.token;
-    }
-    if (newToken?.token) {
-      options.token = newToken.token;
-    }
-
-    await call
-      .join(options)
-      .then(() => {
-        setError(false);
-        setCallFrame(call);
-        /**
-         * Now mute, so everyone joining is muted by default.
-         *
-         * IMPROVEMENT: track a speaker's muted state so if they
-         * are rejoining as a moderator, they don't have to turn
-         * their mic back on.
-         */
-        call.setLocalAudio(false);
-
-        setView(INCALL);
-      })
-      .catch((err) => {
-        if (err) {
-          setError(err);
-        }
+      const call = Daily.createCallObject({
+        audioSource: true, // start with audio on to get mic permission from user at start
+        videoSource: false,
+        dailyConfig: {
+          experimentalChromeVideoMuteLightOff: true,
+        },
       });
-    /**
-     * IMPROVEMENT: Every room should have a moderator. We should
-     * prevent people from joining (or kick them out after joining)
-     * if a mod isn't present. Since these demo rooms only last ten
-     * minutes we're not currently checking this.
-     */
-  };
+
+      const options = {
+        // CHANGE THIS TO YOUR DAILY DOMAIN
+        // EX: https://myaccount.daily.co/${roomInfo?.name}
+        url: `https://devrel.daily.co/${roomInfo?.name}`,
+        userName,
+      };
+      if (roomInfo?.token) {
+        options.token = roomInfo?.token;
+      }
+      if (newToken?.token) {
+        options.token = newToken.token;
+      }
+
+      await call
+        .join(options)
+        .then(() => {
+          setError(false);
+          setCallFrame(call);
+          /**
+           * Now mute, so everyone joining is muted by default.
+           *
+           * IMPROVEMENT: track a speaker's muted state so if they
+           * are rejoining as a moderator, they don't have to turn
+           * their mic back on.
+           */
+          call.setLocalAudio(false);
+
+          setView(INCALL);
+        })
+        .catch((err) => {
+          if (err) {
+            setError(err);
+          }
+        });
+      /**
+       * IMPROVEMENT: Every room should have a moderator. We should
+       * prevent people from joining (or kick them out after joining)
+       * if a mod isn't present. Since these demo rooms only last ten
+       * minutes we're not currently checking this.
+       */
+    },
+    [callFrame, room]
+  );
 
   const handleJoinedMeeting = (evt) => {
     setUpdateParticipants(`joined-${evt?.participant?.user_id}-${Date.now()}`);
@@ -153,7 +156,7 @@ export const CallProvider = ({ children }) => {
     setActiveSpeakerId(evt?.activeSpeaker?.peerId);
   };
 
-  const playTrack = (evt) => {
+  const playTrack = useCallback((evt) => {
     console.log(
       "[TRACK STARTED]",
       evt.participant && evt.participant.session_id
@@ -161,19 +164,20 @@ export const CallProvider = ({ children }) => {
     setUpdateParticipants(
       `track-started-${evt?.participant?.user_id}-${Date.now()}`
     );
-  };
-  const destroyTrack = (evt) => {
+  }, []);
+
+  const destroyTrack = useCallback((evt) => {
     console.log("[DESTROY TRACK]", evt);
     setUpdateParticipants(
       `track-stopped-${evt?.participant?.user_id}-${Date.now()}`
     );
-  };
+  }, []);
 
-  const getAccountType = (username) => {
+  const getAccountType = useCallback((username) => {
     if (!username) return;
     // check last three letters to compare to account type constants
     return username.slice(-3);
-  };
+  }, []);
 
   const leaveCall = useCallback(() => {
     if (!callFrame) return;
@@ -206,11 +210,11 @@ export const CallProvider = ({ children }) => {
     leaveCall();
   }, [participants, removeFromCall, leaveCall]);
 
-  const displayName = (username) => {
+  const displayName = useCallback((username) => {
     if (!username) return;
     // return name without account type
     return username.slice(0, username.length - 4);
-  };
+  }, []);
 
   const updateUsername = useCallback(
     (newAccountType) => {
@@ -230,7 +234,7 @@ export const CallProvider = ({ children }) => {
        */
       callFrame.setUserName(`${display}_${newAccountType}`);
     },
-    [callFrame]
+    [callFrame, displayName]
   );
 
   const handleMute = useCallback(
@@ -354,6 +358,8 @@ export const CallProvider = ({ children }) => {
             //seeya
             leaveCall();
             break;
+          default:
+            break;
         }
       } catch (e) {
         console.error(e);
@@ -389,7 +395,16 @@ export const CallProvider = ({ children }) => {
       callFrame.off("track-started", playTrack);
       callFrame.off("track-stopped", destroyTrack);
     };
-  }, [callFrame, participants, destroyTrack, playTrack, updateUsername]);
+  }, [
+    callFrame,
+    participants,
+    joinRoom,
+    leaveCall,
+    room,
+    destroyTrack,
+    playTrack,
+    updateUsername,
+  ]);
 
   /**
    * Update participants for any event that happens
