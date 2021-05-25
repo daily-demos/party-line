@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const BASE_URL = "https://api.daily.co/v1/";
+const BASE_URL = process.env.DAILY_BASE_URL || "https://api.daily.co/v1/"
 const API_AUTH = process.env.DAILY_API_KEY;
 
 // create an axios instance that includes the BASE_URL and your auth token
