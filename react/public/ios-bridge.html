@@ -48,6 +48,7 @@ Related tickets:
 
       let call, oldConsole, oldOnError;
       let audioElementsBySessionId = {};
+      let silentAudioElement;
 
       // Role tags.
       const ROLE_MODERATOR_TAG = 'MOD';
@@ -427,6 +428,26 @@ Related tickets:
         }
       }
 
+      // Starts playing a silent track to "trick" WKWebView's AVAudioSession
+      // to remain in a mode where it thinks it's continually playing audio. 
+      // This somehow sidesteps a bug where audio occasionally plays through the
+      // earpiece rather than the speaker (specifically, the first participant
+      // audio that starts playing after the number of playing participant audio
+      // elements hits zero). This fix was inspired by the tangentially-related
+      // https://stackoverflow.com/questions/56460362/how-to-force-wkwebview-to-ignore-hardware-silent-switch-on-ios/56460400,
+      // which, though not directly related, also works by indirectly forcing
+      // WKWebView's AVAudioSession into a desired state.
+      // Note that there may very well be a better workaround than this.
+      function startSilentTrack(params) {
+        if (silentAudioElement) return;
+        silentAudioElement = document.createElement('audio');
+        silentAudioElement.loop = true;
+        let silenceMono56kbps100msBase64Mp3 = "data:audio/mp3;base64,//tAxAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAFAAAESAAzMzMzMzMzMzMzMzMzMzMzMzMzZmZmZmZmZmZmZmZmZmZmZmZmZmaZmZmZmZmZmZmZmZmZmZmZmZmZmczMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////8AAAA5TEFNRTMuMTAwAZYAAAAAAAAAABQ4JAMGQgAAOAAABEhNIZS0AAAAAAD/+0DEAAPH3Yz0AAR8CPqyIEABp6AxjG/4x/XiInE4lfQDFwIIRE+uBgZoW4RL0OLMDFn6E5v+/u5ehf76bu7/6bu5+gAiIQGAABQIUJ0QolFghEn/9PhZQpcUTpXMjo0OGzRCZXyKxoIQzB2KhCtGobpT9TRVj/3Pmfp+f8X7Pu1B04sTnc3s0XhOlXoGVCMNo9X//9/r6a10TZEY5DsxqvO7mO5qFvpFCmKIjhpSItGsUYcRO//7QsQRgEiljQIAgLFJAbIhNBCa+JmorCbOi5q9nVd2dKnusTMQg4MFUlD6DQ4OFijwGAijRMfLbHG4nLVTjydyPlJTj8pfPflf9/5GD950A5e+jsrmNZSjSirjs1R7hnkia8vr//l/7Nb+crvr9Ok5ZJOylUKRxf/P9Zn0j2P4pJYXyKkeuy5wUYtdmOu6uobEtFqhIJViLEKIjGxchGev/L3Y0O3bwrIOszTBAZ7Ih28EUaSOZf/7QsQfg8fpjQIADN0JHbGgQBAZ8T//y//t/7d/2+f5m7MdCeo/9tdkMtGLbt1tqnabRroO1Qfvh20yEbei8nfDXP7btW7f9/uO9tbe5IvHQbLlxpf3DkAk0ojYcv///5/u3/7PTfGjPEPUvt5D6f+/3Lea4lz4tc4TnM/mFPrmalWbboeNiNyeyr+vufttZuvrVrt/WYv3T74JFo8qEDiJqJrmDTs///v99xDku2xG02jjunrICP/7QsQtA8kpkQAAgNMA/7FgQAGnobgfghgqA+uXwWQ3XFmGimSbe2X3ksY//KzK1a2k6cnNWOPJnPWUsYbKqkh8RJzrVf///P///////4vyhLKHLrCb5nIrYIUss4cthigL1lQ1wwNAc6C1pf1TIKRSkt+a//z+yLVcwlXKSqeSuCVQFLng2h4AFAFgTkH+Z/8jTX/zr//zsJV/5f//5UX/0ZNCNCCaf5lTCTRkaEdhNP//n/KUjf/7QsQ5AEhdiwAAjN7I6jGddBCO+WGTQ1mXrYatSAgaykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==";
+        silentAudioElement.src = silenceMono56kbps100msBase64Mp3;
+        document.body.appendChild(silentAudioElement);
+        silentAudioElement.play();
+      }
+
       // ---- call properties ----
 
       // Retrieves the room's current participants.
@@ -441,6 +462,7 @@ Related tickets:
       function handleJoinedMeeting(evt) {
         console.log('[JOINED MEETING]');
         console.log(evt);
+        startSilentTrack();
 
         postNativeEventMessage(evt);
       }
