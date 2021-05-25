@@ -511,7 +511,7 @@ Related tickets:
           return;
         }
 
-        startTrack(evt.participant.sessionId, evt.track);
+        startTrack(evt.participant.session_id, evt.track);
       }
 
       // Responds to Daily's "track-stopped" events.
@@ -519,7 +519,7 @@ Related tickets:
         console.log('[TRACK STOPPED]');
         console.log(evt);
 
-        stopTrack(evt.participant.sessionId);
+        stopTrack(evt.participant.session_id);
       }
 
       // ---- native bridge ----
