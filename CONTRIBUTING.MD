@@ -2,15 +2,16 @@
 
 Thank you for looking into contributing to`daily-demos`! We want these projects to help people experiment with Daily more quickly. We especially welcome any contributions that help us make existing demos easier to understand, improve demos' instructions and descriptions, and we're especially excited about any new demos that highlight unique ways to use the [Daily API](https://docs.daily.co/reference).
 
-**Before contributing:**
-
-- [Read our code of conduct](#read-our-code-of-conduct)
-
-**How to contribute:**
-
-- [Open or claim an issue](#open-or-claim-an-issue)
-- [Open a pull request](#open-a-pull-request)
-- [Contribute a new demo project](#contribute-a-new-demo-project)
+- [Contributing](#contributing)
+  - [Before contributing](#before-contributing)
+    - [Run party-lime locally](#run-party-lime-locally)
+    - [Read our code of conduct](#read-our-code-of-conduct)
+  - [How to contribute](#how-to-contribute)
+    - [Open or claim an issue](#open-or-claim-an-issue)
+      - [Open an issue](#open-an-issue)
+      - [Claim an issue](#claim-an-issue)
+    - [Open a pull request](#open-a-pull-request)
+    - [Contribute a new demo project](#contribute-a-new-demo-project)
 
 ## Before contributing
 
