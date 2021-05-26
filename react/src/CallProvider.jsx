@@ -107,6 +107,8 @@ export const CallProvider = ({ children }) => {
       options.token = newToken.token;
     }
 
+    call.on("joined-meeting", handleJoinedMeeting);
+
     await call
       .join(options)
       .then(() => {
@@ -139,6 +141,7 @@ export const CallProvider = ({ children }) => {
   const handleJoinedMeeting = (evt) => {
     setUpdateParticipants(`joined-${evt?.participant?.user_id}-${Date.now()}`);
     setView(INCALL);
+    console.log("[JOINED MEETING]", evt?.participant);
   };
   const handleParticipantJoinedOrUpdated = (evt) => {
     setUpdateParticipants(`updated-${evt?.participant?.user_id}-${Date.now()}`);
@@ -365,10 +368,9 @@ export const CallProvider = ({ children }) => {
       console.warn(e);
     };
 
-    console.log(callFrame?.meetingState());
+    console.log("updating event listeners", callFrame?.meetingState());
     if (!callFrame) return;
     callFrame.on("error", showError);
-    callFrame.on("joined-meeting", handleJoinedMeeting);
     callFrame.on("participant-joined", handleParticipantJoinedOrUpdated);
     callFrame.on("participant-updated", handleParticipantJoinedOrUpdated);
     callFrame.on("participant-left", handleParticipantLeft);
@@ -380,7 +382,6 @@ export const CallProvider = ({ children }) => {
     return () => {
       // clean up
       callFrame.off("error", showError);
-      callFrame.off("joined-meeting", handleJoinedMeeting);
       callFrame.off("participant-joined", handleParticipantJoinedOrUpdated);
       callFrame.off("participant-updated", handleParticipantJoinedOrUpdated);
       callFrame.off("participant-left", handleParticipantLeft);
@@ -400,7 +401,7 @@ export const CallProvider = ({ children }) => {
   useEffect(() => {
     if (updateParticipants) {
       console.log("[UPDATING PARTICIPANT LIST]");
-      const list = Object.values(callFrame?.participants());
+      const list = Object.values(callFrame?.participants() || {});
       setParticipants(list);
     }
   }, [updateParticipants, callFrame]);
