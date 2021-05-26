@@ -47,6 +47,6 @@ To add more participants to your call, you can take advantage of the React demo 
 
 ## Deployment
 
-Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+Once you've deployed your own server, make sure to update the necessary URLs as noted in:
 
 - react-native/contexts/CallProvider.jsx

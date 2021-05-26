@@ -22,8 +22,7 @@ To add more participants to your call, you can run additional windows locally or
 
 ## Deployment
 
-Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+Once you've deployed your own server, make sure to update the necessary URLs as noted in:
 
 - react/src/CallProvider.jsx
 - react/public/ios-bridge.html
-

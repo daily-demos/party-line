@@ -16,7 +16,7 @@ Thank you for looking into contributing to`daily-demos`! We want these projects 
 
 ### Run party-lime locally
 
-Please follow the instructions in `README.md`. 
+Please follow the instructions in `README.md`.
 
 ### Read our code of conduct
 
@@ -69,4 +69,4 @@ If you've built a project on Daily that you want to share with other developers,
 
 To add a new demo project:
 
-Open a PR in [awesome-daily](#) and add a link to your project. 
+Open a PR in [awesome-daily](#) and add a link to your project.
