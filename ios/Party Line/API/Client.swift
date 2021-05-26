@@ -173,11 +173,12 @@ final class Client: NSObject, ObservableObject {
 
     /// The URL of the page that.
     private static var pageURL: URL {
-        // The source file behind this URL can be found at `react/public/ios-bridge.html`
-        // along with an explanation of why it needs to be hosted externally for now:
-        // CHANGE THIS TO YOUR NETLIFY URL
-        // EX: https://myapp.netlify.app/ios-bridge.html
-        URL(string: "https://partyline.daily.co/ios-bridge.html")!
+        // CAUTION: Due to https://bugs.webkit.org/show_bug.cgi?id=220184
+        // when running the app on iOS <= 14.4 you need to host the
+        // 'client.html' file on a web server and load it from there, instead.
+        // Otherwise `WKWebView` will fail to show the microphone permissions
+        // dialog and the user will not be able to be heard by others.
+        Bundle.main.url(forResource: "client", withExtension: "html")!
     }
 
     private static let eventsMessageHandlerName: String = "events"
