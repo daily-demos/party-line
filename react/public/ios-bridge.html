@@ -422,8 +422,7 @@ Related tickets:
 
         if (audioElement != undefined) {
           audioElement.remove();
-          audioElement = null;
-          audioElementsBySessionId.delete(sessionId);
+          delete audioElementsBySessionId[sessionId];
         }
       }
 
