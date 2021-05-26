@@ -22,7 +22,7 @@ If you created an emulator with avd manager, you can select it from the "Availab
 
 ### targetSdkVersion 30
 
-Running the app on an emulator out-of-the-box as long as you set `targetSdkVersion` to `<=29`. Setting `targetSdkVersion` to `30` might cause selinux to prevent the emulator from communicating via sockets. Follow [these steps](https://source.android.com/security/selinux/validate) if you want to set `targetSdkVersoin 30` and encounter this issue (tested on Ubuntu 20.04). Currently `targetSdkVersion 29` is set by default.
+Running the app on an emulator out-of-the-box as long as you set `targetSdkVersion` to `<=29`. Setting `targetSdkVersion` to `30` might cause Linux to prevent the emulator from communicating via sockets. Follow [these steps](https://source.android.com/security/selinux/validate) if you want to set `targetSdkVersion 30` and encounter this issue (tested on Ubuntu 20.04). Currently `targetSdkVersion 29` is set by default.
 
 ## Testing
 

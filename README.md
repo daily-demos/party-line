@@ -4,7 +4,7 @@
 
 ![party line screenshot](screenshot.png)
 
-Multiplatform audio-only demos, for React, React Native, Android, and iOS.
+Multi-platform audio-only demos, for React, React Native, Android, and iOS.
 
 See individual folder READMEs for setup instructions.
 
