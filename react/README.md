@@ -11,7 +11,7 @@ To run locally:
 - Clone this repo locally
 - Run the following
 
-```
+```terminal
 npm i
 npm run start
 ```

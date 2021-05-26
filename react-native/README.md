@@ -11,7 +11,7 @@ To run locally:
 - Clone this repo locally
 - Run the following
 
-```
+```terminal
 npm i
 npx pod-install
 npx react-native start
@@ -21,7 +21,7 @@ npx react-native start
 
 Connect your device and run the following:
 
-```
+```terminal
 npx react-native run-android
 ```
 
