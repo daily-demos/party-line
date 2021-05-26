@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import { useCallState } from "../CallProvider";
 import theme from "../theme";
@@ -6,20 +6,23 @@ import theme from "../theme";
 const Counter = () => {
   const { roomExp, leaveCall, view } = useCallState();
   const [counter, setCounter] = useState("");
+  const interval = useRef();
 
-  let interval;
   useEffect(() => {
     /**
      * Rooms exist for 10 minutes from creation.
      * We use the expiry timestamp to show participants
      * how long they have left in the room.
      */
-    clearInterval(interval);
-    interval = setInterval(() => {
+    if (interval.current) {
+      clearInterval(interval.current);
+    }
+
+    interval.current = setInterval(() => {
       let secs = Math.round((roomExp - Date.now()) / 1000);
       const value = Math.floor(secs / 60) + ":" + ("0" + (secs % 60)).slice(-2);
       if (secs <= 0) {
-        clearInterval(interval);
+        clearInterval(interval.current);
         console.log("Eep! Room has expired");
         leaveCall();
         return;
@@ -28,9 +31,9 @@ const Counter = () => {
     }, 1000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(interval.current);
     };
-  }, [roomExp, view]);
+  }, [roomExp, leaveCall, view]);
 
   return (
     <Container>
