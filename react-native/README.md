@@ -40,7 +40,7 @@ _Note:_ The first time you run the app on an iPhone you will need to add the app
 
 To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
 
-## Additional links:
+## Additional links
 
 - [react-native-daily-js README](https://www.npmjs.com/package/@daily-co/react-native-daily-js)
 - [react-native-daily-js docs](https://docs.daily.co/reference#using-the-react-native-daily-js-library)
