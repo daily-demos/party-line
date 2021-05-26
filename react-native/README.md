@@ -11,7 +11,7 @@ To run locally:
 - Clone this repo locally
 - Run the following
 
-```
+```terminal
 npm i
 npx pod-install
 npx react-native start
@@ -21,7 +21,7 @@ npx react-native start
 
 Connect your device and run the following:
 
-```
+```terminal
 npx react-native run-android
 ```
 
@@ -40,13 +40,13 @@ _Note:_ The first time you run the app on an iPhone you will need to add the app
 
 To add more participants to your call, you can take advantage of the React demo currently hosted at [https://partyline.daily.co/](https://partyline.daily.co/).
 
-## Additional links:
+## Additional links
 
 - [react-native-daily-js README](https://www.npmjs.com/package/@daily-co/react-native-daily-js)
 - [react-native-daily-js docs](https://docs.daily.co/reference#using-the-react-native-daily-js-library)
 
 ## Deployment
 
-Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+Once you've deployed your own server, make sure to update the necessary URLs as noted in:
 
 - react-native/contexts/CallProvider.jsx

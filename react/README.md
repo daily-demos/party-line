@@ -11,17 +11,17 @@ To run locally:
 - Clone this repo locally
 - Run the following
 
-```
+```terminal
 npm i
 npm run start
 ```
 
 ## Testing
 
-To add more participants to your call, you can run additional windows locally or take advantage of the React demo currently hosted at [https://partyline.daily.co/ ](https://partyline.daily.co/).
+To add more participants to your call, you can run additional windows locally or take advantage of the React demo currently hosted at [partyline.daily.co](https://partyline.daily.co/).
 
 ## Deployment
 
-Once you've deployed your own server, make sure to update the necessary URLs as noted in: 
+Once you've deployed your own server, make sure to update the necessary URLs as noted in:
 
 - react/src/CallProvider.jsx
