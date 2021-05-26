@@ -6,39 +6,12 @@
   </head>
 
   <!--
-PSA: This file actually belongs to the iOS demo and is entirely unrelated to the react demo.
-We simply have it piggy back on the react deployment as it needs to be hosted (for now; see below).
-
-In a perfect world this file would simply be bundled with your iOS app and loaded directly from there.
-Alas the world isn't perfect — gestures broadly at everything — and this demo isn't either.
-
-Up until iOS 14.3 `WKWebView` did not support accessing `navigator.mediaDevices.getUserMedia`, a crucial ingredient to WebRTC.
-
-Learn mode: https://webkit.org/blog/11353/mediarecorder-api/
-
-Unfortunately even with iOS 14.3 or later due to a bug in WebKit in case
-of non HTTP or HTTPS origins, `getUserMedia` was always denied.
-
-Learn more: https://bugs.webkit.org/show_bug.cgi?id=220184
-
-While this bug has been fixed as of January 7th 2021 the fix doesn't seem to have made it into any of the recent iOS developer betas yet.
-
-Learn more: https://github.com/WebKit/WebKit/commit/ff60f0a9b3a455b56adb95dbab14d404cb024152
-
-Since loading a local HTML file via `URL(fileURL: …)` into a `WKWebView` results in a `file://…` request
-this demo is affected by aforementioned bug, forcing us to load the file from a HTTPS server instead.
-
-Once the fix made it into the next version of iOS the remote-server workaround will not be necessary any more.
-
-To see where and how this file is used by the iOS demo take a look at `ios/Party Line/API/Client.swift`, specifically `Client.pageURL`.
-
-Related tickets:
-- https://openradar.appspot.com/48813943 (rdar://48813943)
-- https://bugs.webkit.org/show_bug.cgi?id=208667
-- https://bugs.webkit.org/show_bug.cgi?id=188360
-- https://bugs.chromium.org/p/chromium/issues/detail?id=752458
-
--->
+    CAUTION: Due to https://bugs.webkit.org/show_bug.cgi?id=220184
+    when running the app on iOS <= 14.4 you need to host the
+    'client.html' file on a web server and load it from there, instead.
+    Otherwise `WKWebView` will fail to show the microphone permissions
+    dialog and the user will not be able to be heard by others.
+  -->
 
   <body onload="main()">
     <!-- the good stuff -->
