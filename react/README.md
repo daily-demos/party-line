@@ -18,7 +18,7 @@ npm run start
 
 ## Testing
 
-To add more participants to your call, you can run additional windows locally or take advantage of the React demo currently hosted at [https://partyline.daily.co/ ](https://partyline.daily.co/).
+To add more participants to your call, you can run additional windows locally or take advantage of the React demo currently hosted at [partyline.daily.co](https://partyline.daily.co/).
 
 ## Deployment
 
