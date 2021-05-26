@@ -70,4 +70,4 @@ If you've built a project on Daily that you want to share with other developers,
 
 To add a new demo project:
 
-Open a PR in [awesome-daily](#) and add a link to your project.
+Open a PR in [awesome-daily](https://github.com/daily-demos/awesome-daily) and add a link to your project.
