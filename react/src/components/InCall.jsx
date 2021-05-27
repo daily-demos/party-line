@@ -54,7 +54,7 @@ const InCall = () => {
         {l?.map((p, i) => (
           <Participant
             participant={p}
-            key={p.id}
+            key={`listening-${p.id}`}
             local={local}
             modCount={mods?.length}
           />
@@ -70,7 +70,7 @@ const InCall = () => {
         {s?.map((p, i) => (
           <Participant
             participant={p}
-            key={p.id}
+            key={`speaking-${p.id}`}
             local={local}
             modCount={mods?.length}
           />

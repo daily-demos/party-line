@@ -88,7 +88,7 @@ export const CallProvider = ({ children }) => {
       let newToken;
       if (moderator) {
         // create a token for new moderators
-        newToken = await createToken(room?.name);
+        newToken = await createToken(name);
       }
 
       const call = Daily.createCallObject({
@@ -114,6 +114,16 @@ export const CallProvider = ({ children }) => {
         options.token = newToken.token;
       }
 
+      function handleJoinedMeeting(evt) {
+        setUpdateParticipants(
+          `joined-${evt?.participant?.user_id}-${Date.now()}`
+        );
+        setView(INCALL);
+        console.log("[JOINED MEETING]", evt?.participant);
+      }
+
+      call.on("joined-meeting", handleJoinedMeeting);
+
       await call
         .join(options)
         .then(() => {
@@ -127,8 +137,6 @@ export const CallProvider = ({ children }) => {
            * their mic back on.
            */
           call.setLocalAudio(false);
-
-          setView(INCALL);
         })
         .catch((err) => {
           if (err) {
@@ -141,26 +149,27 @@ export const CallProvider = ({ children }) => {
        * if a mod isn't present. Since these demo rooms only last ten
        * minutes we're not currently checking this.
        */
+
+      return () => {
+        call.off("joined-meeting", handleJoinedMeeting);
+      };
     },
-    [callFrame, room]
+    [callFrame]
   );
 
-  const handleJoinedMeeting = (evt) => {
-    setUpdateParticipants(`joined-${evt?.participant?.user_id}-${Date.now()}`);
-    setView(INCALL);
-  };
-  const handleParticipantJoinedOrUpdated = (evt) => {
+  const handleParticipantJoinedOrUpdated = useCallback((evt) => {
     setUpdateParticipants(`updated-${evt?.participant?.user_id}-${Date.now()}`);
     console.log("[PARTICIPANT JOINED/UPDATED]", evt.participant);
-  };
-  const handleParticipantLeft = (evt) => {
+  }, []);
+
+  const handleParticipantLeft = useCallback((evt) => {
     setUpdateParticipants(`left-${evt?.participant?.user_id}-${Date.now()}`);
     console.log("[PARTICIPANT LEFT]", evt);
-  };
-  const handleActiveSpeakerChange = (evt) => {
+  }, []);
+  const handleActiveSpeakerChange = useCallback((evt) => {
     console.log("[ACTIVE SPEAKER CHANGE]", evt);
     setActiveSpeakerId(evt?.activeSpeaker?.peerId);
-  };
+  }, []);
 
   const playTrack = useCallback((evt) => {
     console.log(
@@ -336,6 +345,8 @@ export const CallProvider = ({ children }) => {
   );
 
   useEffect(() => {
+    if (!callFrame) return;
+
     const handleAppMessage = async (evt) => {
       console.log("[APP MESSAGE]", evt);
       try {
@@ -378,9 +389,7 @@ export const CallProvider = ({ children }) => {
     };
 
     console.log(callFrame?.meetingState());
-    if (!callFrame) return;
     callFrame.on("error", showError);
-    callFrame.on("joined-meeting", handleJoinedMeeting);
     callFrame.on("participant-joined", handleParticipantJoinedOrUpdated);
     callFrame.on("participant-updated", handleParticipantJoinedOrUpdated);
     callFrame.on("participant-left", handleParticipantLeft);
@@ -392,7 +401,6 @@ export const CallProvider = ({ children }) => {
     return () => {
       // clean up
       callFrame.off("error", showError);
-      callFrame.off("joined-meeting", handleJoinedMeeting);
       callFrame.off("participant-joined", handleParticipantJoinedOrUpdated);
       callFrame.off("participant-updated", handleParticipantJoinedOrUpdated);
       callFrame.off("participant-left", handleParticipantLeft);
@@ -403,13 +411,15 @@ export const CallProvider = ({ children }) => {
     };
   }, [
     callFrame,
-    participants,
     joinRoom,
     leaveCall,
-    room,
-    destroyTrack,
-    playTrack,
+    room?.name,
     updateUsername,
+    handleParticipantJoinedOrUpdated,
+    handleActiveSpeakerChange,
+    handleParticipantLeft,
+    playTrack,
+    destroyTrack,
   ]);
 
   /**
@@ -421,7 +431,7 @@ export const CallProvider = ({ children }) => {
   useEffect(() => {
     if (updateParticipants) {
       console.log("[UPDATING PARTICIPANT LIST]");
-      const list = Object.values(callFrame?.participants());
+      const list = Object.values(callFrame?.participants() || {});
       setParticipants(list);
     }
   }, [updateParticipants, callFrame]);
