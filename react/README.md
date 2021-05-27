@@ -25,3 +25,7 @@ To add more participants to your call, you can run additional windows locally or
 Once you've deployed your own server, make sure to update the necessary URLs as noted in:
 
 - react/src/CallProvider.jsx
+
+## A note for Safari users
+
+Safari prevents the auto playing of audio by default. You can enable this in Preferences > Websites > Auto-Play

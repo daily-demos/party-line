@@ -185,8 +185,28 @@ const Participant = ({ participant, local, modCount }) => {
     // don't play the local audio track (echo!)
     if (participant?.local) return;
     // set the audio source for everyone else
+
+    /**
+      Note: Safari will block the autoplay of audio by default.
+
+      Improvement: implement a timeout to check if audio stream is playing
+      and prompt the user if not, e.g:
+      
+      let playTimeout;
+      const handleCanPlay = () => {
+        playTimeout = setTimeout(() => {
+          showPlayAudioPrompt(true);
+        }, 1500);
+      };
+      const handlePlay = () => {
+        clearTimeout(playTimeout);
+      };
+      audioEl.current.addEventListener('canplay', handleCanPlay);
+      audioEl.current.addEventListener('play', handlePlay);
+     */
+    console.log(participant?.audioTrack);
     audioRef.current.srcObject = new MediaStream([participant?.audioTrack]);
-  }, [participant?.audioTrack]);
+  }, [participant?.audioTrack, participant?.local]);
 
   const showMoreMenu = useMemo(
     () => getAccountType(local?.user_name) === MOD || participant?.local,
@@ -223,8 +243,8 @@ const Participant = ({ participant, local, modCount }) => {
       {participant?.audioTrack && (
         <audio
           autoPlay
-          id={`audio-${participant.user_id}`}
           playsInline
+          id={`audio-${participant.user_id}`}
           ref={audioRef}
         />
       )}
