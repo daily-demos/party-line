@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import styled from "styled-components";
 import { useCallState } from "../CallProvider";
 import { LISTENER, MOD, SPEAKER } from "../App";
@@ -174,40 +174,6 @@ const Participant = ({ participant, local, modCount }) => {
     raiseHand,
   ]);
 
-  useEffect(() => {
-    if (!participant?.audioTrack || !audioRef.current) return;
-    // sanity check to make sure this is an audio track
-    if (
-      participant?.audioTrack?.track &&
-      !participant?.audioTrack?.track?.kind === "audio"
-    )
-      return;
-    // don't play the local audio track (echo!)
-    if (participant?.local) return;
-    // set the audio source for everyone else
-
-    /**
-      Note: Safari will block the autoplay of audio by default.
-
-      Improvement: implement a timeout to check if audio stream is playing
-      and prompt the user if not, e.g:
-      
-      let playTimeout;
-      const handleCanPlay = () => {
-        playTimeout = setTimeout(() => {
-          showPlayAudioPrompt(true);
-        }, 1500);
-      };
-      const handlePlay = () => {
-        clearTimeout(playTimeout);
-      };
-      audioEl.current.addEventListener('canplay', handleCanPlay);
-      audioEl.current.addEventListener('play', handlePlay);
-     */
-    console.log(participant?.audioTrack);
-    audioRef.current.srcObject = new MediaStream([participant?.audioTrack]);
-  }, [participant?.audioTrack, participant?.local]);
-
   const showMoreMenu = useMemo(
     () => getAccountType(local?.user_name) === MOD || participant?.local,
     [getAccountType, local, participant]
@@ -311,4 +277,4 @@ const MenuContainer = styled.div`
   z-index: 10;
 `;
 
-export default Participant;
+export default Participant;// React.memo(Participant, (p, n) => p.participant?.id === n.participant?.id);
