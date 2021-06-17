@@ -204,9 +204,31 @@ const Participant = ({ participant, local, modCount }) => {
       audioEl.current.addEventListener('canplay', handleCanPlay);
       audioEl.current.addEventListener('play', handlePlay);
      */
-    console.log(participant?.audioTrack);
     audioRef.current.srcObject = new MediaStream([participant?.audioTrack]);
   }, [participant?.audioTrack, participant?.local]);
+
+  useEffect(() => {
+    // On iOS safari, when headphones are disconnected, all audio elements are paused.
+    // This means that when a user disconnects their headphones, that user will not
+    // be able to hear any other users until they mute/unmute their mics.
+    // To fix that, we call `play` on each audio track on all devicechange events.
+
+    if (!audioRef.current) {
+      return false;
+    }
+
+    const startPlayingTrack = () => {
+      audioRef.current?.play();
+    };
+    navigator.mediaDevices.addEventListener("devicechange", startPlayingTrack);
+
+    return () => {
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        startPlayingTrack
+      );
+    };
+  }, [audioRef]);
 
   const showMoreMenu = useMemo(
     () => getAccountType(local?.user_name) === MOD || participant?.local,
