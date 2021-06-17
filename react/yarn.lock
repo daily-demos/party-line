@@ -1219,10 +1219,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
-"@daily-co/daily-js@^0.9.998":
-  version "0.9.999"
-  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.9.999.tgz#6c6a466119bc54398fe75c430ef971f64926a197"
-  integrity sha512-wHj3+EXH2sNJybupknaFFG+FBbEXTgkboO7WICWidml4Ws1cjkFSb+nIi2flvF6tHCNQIYkB41DlDWHLgk1r2w==
+"@daily-co/daily-js@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.14.0.tgz#29308c77e00886514df7d932d771980d5cdb7618"
+  integrity sha512-OD2epVohYraTfOH/ZuO5rP9Ej4Rfu/ufGXX0XJQG+mAu1hJ1610JWunnszTmfhk+uUH4aA9i7+5/PQ2meOXUtQ==
   dependencies:
     "@babel/runtime" "^7.12.5"
     bowser "^2.8.1"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import styled from "styled-components";
 import { useCallState } from "../CallProvider";
 import { LISTENER, MOD, SPEAKER } from "../App";
@@ -333,4 +333,4 @@ const MenuContainer = styled.div`
   z-index: 10;
 `;
 
-export default Participant;
+export default Participant; // React.memo(Participant, (p, n) => p.participant?.id === n.participant?.id);
