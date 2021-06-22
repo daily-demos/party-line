@@ -27,19 +27,20 @@ const InCall = ({handleLinkPress}) => {
    */
   LogBox.ignoreAllLogs(true);
 
-  const mods = useMemo(() => participants?.filter((p) => p?.owner), [
-    participants,
-    getAccountType,
-  ]);
+  const mods = useMemo(
+    () => participants?.filter((p) => p?.owner),
+    [participants, getAccountType],
+  );
 
   const speakers = useMemo(
     (p) =>
       participants?.filter((p) => getAccountType(p?.user_name) === SPEAKER),
     [participants, getAccountType],
   );
-  const local = useMemo((p) => participants?.filter((p) => p?.local)[0], [
-    participants,
-  ]);
+  const local = useMemo(
+    (p) => participants?.filter((p) => p?.local)[0],
+    [participants],
+  );
 
   const listeners = useMemo(() => {
     const l = participants
@@ -54,7 +55,7 @@ const InCall = ({handleLinkPress}) => {
         {l?.map((p, i) => (
           <Participant
             participant={p}
-            key={i}
+            key={p.id}
             local={local}
             zIndex={l.length - i}
           />
@@ -68,7 +69,7 @@ const InCall = ({handleLinkPress}) => {
     return (
       <View style={styles.speakersContainer}>
         {s?.map((p, i) => (
-          <Participant participant={p} key={i} local={local} />
+          <Participant participant={p} key={p.id} local={local} />
         ))}
       </View>
     );

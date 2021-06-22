@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import styled from "styled-components";
 import { useCallState } from "../CallProvider";
 import { LISTENER, MOD, SPEAKER } from "../App";
@@ -174,20 +174,6 @@ const Participant = ({ participant, local, modCount }) => {
     raiseHand,
   ]);
 
-  useEffect(() => {
-    if (!participant?.audioTrack || !audioRef.current) return;
-    // sanity check to make sure this is an audio track
-    if (
-      participant?.audioTrack?.track &&
-      !participant?.audioTrack?.track?.kind === "audio"
-    )
-      return;
-    // don't play the local audio track (echo!)
-    if (participant?.local) return;
-    // set the audio source for everyone else
-    audioRef.current.srcObject = new MediaStream([participant?.audioTrack]);
-  }, [participant?.audioTrack]);
-
   const showMoreMenu = useMemo(
     () => getAccountType(local?.user_name) === MOD || participant?.local,
     [getAccountType, local, participant]
@@ -223,8 +209,8 @@ const Participant = ({ participant, local, modCount }) => {
       {participant?.audioTrack && (
         <audio
           autoPlay
-          id={`audio-${participant.user_id}`}
           playsInline
+          id={`audio-${participant.user_id}`}
           ref={audioRef}
         />
       )}
@@ -291,4 +277,4 @@ const MenuContainer = styled.div`
   z-index: 10;
 `;
 
-export default Participant;
+export default Participant;// React.memo(Participant, (p, n) => p.participant?.id === n.participant?.id);

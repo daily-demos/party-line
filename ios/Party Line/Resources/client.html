@@ -5,41 +5,6 @@
     <script src="https://unpkg.com/@daily-co/daily-js"></script>
   </head>
 
-  <!--
-PSA: This file actually belongs to the iOS demo and is entirely unrelated to the react demo.
-We simply have it piggy back on the react deployment as it needs to be hosted (for now; see below).
-
-In a perfect world this file would simply be bundled with your iOS app and loaded directly from there.
-Alas the world isn't perfect — gestures broadly at everything — and this demo isn't either.
-
-Up until iOS 14.3 `WKWebView` did not support accessing `navigator.mediaDevices.getUserMedia`, a crucial ingredient to WebRTC.
-
-Learn mode: https://webkit.org/blog/11353/mediarecorder-api/
-
-Unfortunately even with iOS 14.3 or later due to a bug in WebKit in case
-of non HTTP or HTTPS origins, `getUserMedia` was always denied.
-
-Learn more: https://bugs.webkit.org/show_bug.cgi?id=220184
-
-While this bug has been fixed as of January 7th 2021 the fix doesn't seem to have made it into any of the recent iOS developer betas yet.
-
-Learn more: https://github.com/WebKit/WebKit/commit/ff60f0a9b3a455b56adb95dbab14d404cb024152
-
-Since loading a local HTML file via `URL(fileURL: …)` into a `WKWebView` results in a `file://…` request
-this demo is affected by aforementioned bug, forcing us to load the file from a HTTPS server instead.
-
-Once the fix made it into the next version of iOS the remote-server workaround will not be necessary any more.
-
-To see where and how this file is used by the iOS demo take a look at `ios/Party Line/API/Client.swift`, specifically `Client.pageURL`.
-
-Related tickets:
-- https://openradar.appspot.com/48813943 (rdar://48813943)
-- https://bugs.webkit.org/show_bug.cgi?id=208667
-- https://bugs.webkit.org/show_bug.cgi?id=188360
-- https://bugs.chromium.org/p/chromium/issues/detail?id=752458
-
--->
-
   <body onload="main()">
     <!-- the good stuff -->
 
@@ -48,17 +13,18 @@ Related tickets:
 
       let call, oldConsole, oldOnError;
       let audioElementsBySessionId = {};
-
+      let silentAudioElement;
+      
       // Role tags.
-      const ROLE_MODERATOR_TAG = 'MOD';
-      const ROLE_SPEAKER_TAG = 'SPK';
-      const ROLE_LISTENER_TAG = 'LST';
+      const ROLE_MODERATOR_TAG = "MOD";
+      const ROLE_SPEAKER_TAG = "SPK";
+      const ROLE_LISTENER_TAG = "LST";
 
       // App messages.
-      const MSG_MAKE_MODERATOR = 'make-moderator';
-      const MSG_MAKE_SPEAKER = 'make-speaker';
-      const MSG_MAKE_LISTENER = 'make-listener';
-      const MSG_FORCE_EJECT = 'force-eject';
+      const MSG_MAKE_MODERATOR = "make-moderator";
+      const MSG_MAKE_SPEAKER = "make-speaker";
+      const MSG_MAKE_LISTENER = "make-listener";
+      const MSG_FORCE_EJECT = "force-eject";
 
       // The app's entry point.
       function main() {
@@ -83,10 +49,10 @@ Related tickets:
           }
           return {
             ...oldConsole,
-            log: redirect('log'),
-            info: redirect('info'),
-            warn: redirect('warn'),
-            error: redirect('error'),
+            log: redirect("log"),
+            info: redirect("info"),
+            warn: redirect("warn"),
+            error: redirect("error"),
           };
         })(window.console);
       }
@@ -118,22 +84,22 @@ Related tickets:
 
       // Creates a room on the demo's associated account.
       async function createRoomAsync({}) {
-        console.log('[CREATING ROOM]');
+        console.log("[CREATING ROOM]");
 
         let res = await fetch(
           // CHANGE THIS TO YOUR NETLIFY URL
           // EX: https://myapp.netlify.app/.netlify/functions/room
-          'https://partyline.daily.co/.netlify/functions/room',
+          "https://partyline.daily.co/.netlify/functions/room",
           {
-            method: 'POST',
+            method: "POST",
           }
         );
         let room = await res.json();
 
-        console.log('[CREATED ROOM]', room);
+        console.log("[CREATED ROOM]", room);
 
         postNativeEventMessage({
-          action: 'demo-created-room',
+          action: "demo-created-room",
           room: room,
         });
 
@@ -149,16 +115,16 @@ Related tickets:
 
       // Requests a token for a given room (required to become a moderator).
       async function createTokenAsync({ roomName }) {
-        console.log('[CREATING TOKEN]');
+        console.log("[CREATING TOKEN]");
 
         let res = await fetch(
           // CHANGE THIS TO YOUR NETLIFY URL
           // EX: https://myapp.netlify.app/.netlify/functions/token
-          'https://partyline.daily.co/.netlify/functions/token',
+          "https://partyline.daily.co/.netlify/functions/token",
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               properties: {
@@ -169,10 +135,10 @@ Related tickets:
         );
         let token = await res.json();
 
-        console.log('[CREATED TOKEN]', token);
+        console.log("[CREATED TOKEN]", token);
 
         postNativeEventMessage({
-          action: 'demo-created-token',
+          action: "demo-created-token",
           token: token,
         });
 
@@ -188,7 +154,7 @@ Related tickets:
 
       // Creates a room and joins it as the owner.
       async function createAndJoinRoomAsync({ userName }) {
-        console.log('[CREATING & JOINING ROOM]');
+        console.log("[CREATING & JOINING ROOM]");
 
         let roomData = await createRoomAsync({});
 
@@ -207,7 +173,7 @@ Related tickets:
 
       // Joines a room as listener.
       async function joinRoomAsync({ userName, roomUrl, token }) {
-        console.log('[JOINING ROOM]');
+        console.log("[JOINING ROOM]");
 
         let tag = ROLE_LISTENER_TAG;
 
@@ -215,7 +181,7 @@ Related tickets:
           tag = ROLE_MODERATOR_TAG;
         }
 
-        token = token ?? '';
+        token = token ?? "";
 
         userName = setRoleTagInUserName(userName, tag);
 
@@ -232,17 +198,17 @@ Related tickets:
 
           window.call = call;
 
-          call.on('joined-meeting', handleJoinedMeeting);
+          call.on("joined-meeting", handleJoinedMeeting);
 
-          call.on('error', handleError);
+          call.on("error", handleError);
 
-          call.on('participant-joined', handleParticipantJoined);
-          call.on('participant-updated', handleParticipantUpdated);
-          call.on('participant-left', handleParticipantLeft);
-          call.on('app-message', handleAppMessage);
+          call.on("participant-joined", handleParticipantJoined);
+          call.on("participant-updated", handleParticipantUpdated);
+          call.on("participant-left", handleParticipantLeft);
+          call.on("app-message", handleAppMessage);
 
-          call.on('track-started', handleTrackStarted);
-          call.on('track-stopped', handleTrackStopped);
+          call.on("track-started", handleTrackStarted);
+          call.on("track-stopped", handleTrackStopped);
         }
 
         await call.join({ url: roomUrl, userName, token });
@@ -253,7 +219,7 @@ Related tickets:
         let room = await call.room();
 
         postNativeEventMessage({
-          action: 'demo-joined-room',
+          action: "demo-joined-room",
           room: room,
         });
       }
@@ -267,7 +233,7 @@ Related tickets:
 
       // Leaves the current room.
       async function leaveRoomAsync({}) {
-        console.log('[LEAVING ROOM]');
+        console.log("[LEAVING ROOM]");
         await call.leave();
       }
 
@@ -282,7 +248,7 @@ Related tickets:
       function setHandRaised(handRaised) {
         let participant = call.participants().local;
 
-        let userName = participant.user_name.replace(/^✋ /, '');
+        let userName = participant.user_name.replace(/^✋ /, "");
 
         if (handRaised) {
           userName = `✋ ${userName}`;
@@ -353,7 +319,7 @@ Related tickets:
 
       // Prepares the participant for becoming a moderator.
       async function becomeModerator() {
-        console.log('[MAKING MODERATOR]');
+        console.log("[MAKING MODERATOR]");
 
         let userName = call.participants().local.user_name;
         let roomUrl = call.properties.url;
@@ -370,7 +336,7 @@ Related tickets:
 
       // Prepares the participant for becoming a speaker.
       function becomeSpeaker() {
-        console.log('[MAKING SPEAKER]');
+        console.log("[MAKING SPEAKER]");
 
         let userName = call.participants().local.user_name;
         userName = setRoleTagInUserName(userName, ROLE_SPEAKER_TAG);
@@ -380,7 +346,7 @@ Related tickets:
 
       // Prepares the participant for becoming a listener.
       function becomeListener() {
-        console.log('[MAKING LISTENER]');
+        console.log("[MAKING LISTENER]");
 
         let userName = call.participants().local.user_name;
         userName = setRoleTagInUserName(userName, ROLE_LISTENER_TAG);
@@ -391,21 +357,21 @@ Related tickets:
 
       // Sets/Updates the role tag for a given username.
       function setRoleTagInUserName(userName, tag) {
-        userName = userName.replace(/_(LST|SPK|MOD)$/, '');
+        userName = userName.replace(/_(LST|SPK|MOD)$/, "");
         return `${userName}_${tag}`;
       }
 
       // Starts playing a track.
       function startTrack(sessionId, track) {
         // sanity check to make sure this is an audio track
-        if (!(track && track.kind === 'audio')) {
+        if (!(track && track.kind === "audio")) {
           return;
         }
 
-        let audioElement = document.createElement('audio');
+        let audioElement = document.createElement("audio");
 
         audioElement.autoplay = true;
-        audioElement.setAttribute('playsinline', '');
+        audioElement.setAttribute("playsinline", "");
 
         audioElement.srcObject = new MediaStream([track]);
 
@@ -425,6 +391,27 @@ Related tickets:
           delete audioElementsBySessionId[sessionId];
         }
       }
+    
+    
+    // Starts playing a silent track to "trick" WKWebView's AVAudioSession
+    // to remain in a mode where it thinks it's continually playing audio.
+    // This somehow sidesteps a bug where audio occasionally plays through the
+    // earpiece rather than the speaker (specifically, the first participant
+    // audio that starts playing after the number of playing participant audio
+    // elements hits zero). This fix was inspired by the tangentially-related
+    // https://stackoverflow.com/questions/56460362/how-to-force-wkwebview-to-ignore-hardware-silent-switch-on-ios/56460400,
+    // which, though not directly related, also works by indirectly forcing
+    // WKWebView's AVAudioSession into a desired state.
+    // Note that there may very well be a better workaround than this.
+    function startSilentTrack(params) {
+        if (silentAudioElement) return;
+        silentAudioElement = document.createElement('audio');
+        silentAudioElement.loop = true;
+        let silenceMono56kbps100msBase64Mp3 = "data:audio/mp3;base64,//tAxAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAFAAAESAAzMzMzMzMzMzMzMzMzMzMzMzMzZmZmZmZmZmZmZmZmZmZmZmZmZmaZmZmZmZmZmZmZmZmZmZmZmZmZmczMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////8AAAA5TEFNRTMuMTAwAZYAAAAAAAAAABQ4JAMGQgAAOAAABEhNIZS0AAAAAAD/+0DEAAPH3Yz0AAR8CPqyIEABp6AxjG/4x/XiInE4lfQDFwIIRE+uBgZoW4RL0OLMDFn6E5v+/u5ehf76bu7/6bu5+gAiIQGAABQIUJ0QolFghEn/9PhZQpcUTpXMjo0OGzRCZXyKxoIQzB2KhCtGobpT9TRVj/3Pmfp+f8X7Pu1B04sTnc3s0XhOlXoGVCMNo9X//9/r6a10TZEY5DsxqvO7mO5qFvpFCmKIjhpSItGsUYcRO//7QsQRgEiljQIAgLFJAbIhNBCa+JmorCbOi5q9nVd2dKnusTMQg4MFUlD6DQ4OFijwGAijRMfLbHG4nLVTjydyPlJTj8pfPflf9/5GD950A5e+jsrmNZSjSirjs1R7hnkia8vr//l/7Nb+crvr9Ok5ZJOylUKRxf/P9Zn0j2P4pJYXyKkeuy5wUYtdmOu6uobEtFqhIJViLEKIjGxchGev/L3Y0O3bwrIOszTBAZ7Ih28EUaSOZf/7QsQfg8fpjQIADN0JHbGgQBAZ8T//y//t/7d/2+f5m7MdCeo/9tdkMtGLbt1tqnabRroO1Qfvh20yEbei8nfDXP7btW7f9/uO9tbe5IvHQbLlxpf3DkAk0ojYcv///5/u3/7PTfGjPEPUvt5D6f+/3Lea4lz4tc4TnM/mFPrmalWbboeNiNyeyr+vufttZuvrVrt/WYv3T74JFo8qEDiJqJrmDTs///v99xDku2xG02jjunrICP/7QsQtA8kpkQAAgNMA/7FgQAGnobgfghgqA+uXwWQ3XFmGimSbe2X3ksY//KzK1a2k6cnNWOPJnPWUsYbKqkh8RJzrVf///P///////4vyhLKHLrCb5nIrYIUss4cthigL1lQ1wwNAc6C1pf1TIKRSkt+a//z+yLVcwlXKSqeSuCVQFLng2h4AFAFgTkH+Z/8jTX/zr//zsJV/5f//5UX/0ZNCNCCaf5lTCTRkaEdhNP//n/KUjf/7QsQ5AEhdiwAAjN7I6jGddBCO+WGTQ1mXrYatSAgaykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==";
+        silentAudioElement.src = silenceMono56kbps100msBase64Mp3;
+        document.body.appendChild(silentAudioElement);
+        silentAudioElement.play();
+    }
 
       // ---- call properties ----
 
@@ -438,15 +425,16 @@ Related tickets:
 
       // Responds to Daily's "joined-meeting" events.
       function handleJoinedMeeting(evt) {
-        console.log('[JOINED MEETING]');
+        console.log("[JOINED MEETING]");
         console.log(evt);
-
+        
+        startSilentTrack();
         postNativeEventMessage(evt);
       }
 
       // Responds to Daily's "error" events.
       function handleError(evt) {
-        console.log('[ERROR]');
+        console.log("[ERROR]");
         console.log(evt);
 
         postNativeEventMessage(evt);
@@ -454,7 +442,7 @@ Related tickets:
 
       // Responds to Daily's "participant-joined" events.
       function handleParticipantJoined(evt) {
-        console.log('[PARTICIPANT JOINED]');
+        console.log("[PARTICIPANT JOINED]");
         console.log(evt);
 
         postNativeEventMessage(evt);
@@ -462,7 +450,7 @@ Related tickets:
 
       // Responds to Daily's "participant-updated" events.
       function handleParticipantUpdated(evt) {
-        console.log('[PARTICIPANT UPDATED]');
+        console.log("[PARTICIPANT UPDATED]");
         console.log(evt);
 
         postNativeEventMessage(evt);
@@ -470,7 +458,7 @@ Related tickets:
 
       // Responds to Daily's "participant-left" events.
       function handleParticipantLeft(evt) {
-        console.log('[PARTICIPANT LEFT]');
+        console.log("[PARTICIPANT LEFT]");
         console.log(evt);
 
         postNativeEventMessage(evt);
@@ -478,7 +466,7 @@ Related tickets:
 
       // Responds to Daily's "app-message" events.
       async function handleAppMessage(evt) {
-        console.log('[APP MESSAGE]');
+        console.log("[APP MESSAGE]");
         console.log(evt);
 
         try {
@@ -502,7 +490,7 @@ Related tickets:
 
       // Responds to Daily's "track-started" events.
       function handleTrackStarted(evt) {
-        console.log('[TRACK STARTED]');
+        console.log("[TRACK STARTED]");
         console.log(evt);
 
         // don't play the local audio track (echo!)
@@ -515,7 +503,7 @@ Related tickets:
 
       // Responds to Daily's "track-stopped" events.
       function handleTrackStopped(evt) {
-        console.log('[TRACK STOPPED]');
+        console.log("[TRACK STOPPED]");
         console.log(evt);
 
         stopTrack(evt.participant.session_id);

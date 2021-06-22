@@ -4,6 +4,7 @@ import { INCALL, useCallState } from "../CallProvider";
 import { SPEAKER, LISTENER, MOD } from "../App";
 import CopyLinkBox from "./CopyLinkBox";
 import Participant from "./Participant";
+import Audio from "./Audio";
 import Counter from "./Counter";
 import MicIcon from "./MicIcon";
 import MutedIcon from "./MutedIcon";
@@ -24,9 +25,10 @@ const InCall = () => {
   } = useCallState();
   console.log(participants);
 
-  const local = useMemo((p) => participants?.filter((p) => p?.local)[0], [
-    participants,
-  ]);
+  const local = useMemo(
+    (p) => participants?.filter((p) => p?.local)[0],
+    [participants]
+  );
 
   const mods = useMemo(
     () =>
@@ -53,7 +55,7 @@ const InCall = () => {
         {l?.map((p, i) => (
           <Participant
             participant={p}
-            key={i}
+            key={`listening-${p.user_id}`}
             local={local}
             modCount={mods?.length}
           />
@@ -69,7 +71,7 @@ const InCall = () => {
         {s?.map((p, i) => (
           <Participant
             participant={p}
-            key={i}
+            key={`speaking-${p.user_id}`}
             local={local}
             modCount={mods?.length}
           />
@@ -89,6 +91,7 @@ const InCall = () => {
   );
 
   return (
+    <>
     <Container hidden={view !== INCALL}>
       <CallHeader>
         <Header>Speakers</Header>
@@ -126,6 +129,8 @@ const InCall = () => {
         </TrayContent>
       </Tray>
     </Container>
+    <Audio participants={participants}/>
+    </>
   );
 };
 
