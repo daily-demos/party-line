@@ -10,5 +10,9 @@
 
     publish = "build/"
 
+[build.environment]
+    # suppress failures for for build warnings
+    CI = "false"
+
 [template.environment]
-    DAILY_API_KEY = "Replace with API key"
+    DAILY_API_KEY = "Replace with Daily API key"
