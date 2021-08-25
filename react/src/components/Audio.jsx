@@ -1,26 +1,7 @@
-import React, {useRef, useCallback, useEffect} from "react";
+import React, {useRef, useEffect} from "react";
 
 export const AudioItem = ({participant}) => {
     const audioRef = useRef(null);
-
-    /**
-      Note: Safari will block the autoplay of audio by default.
-
-      Improvement: implement a timeout to check if audio stream is playing
-      and prompt the user if not, e.g:
-      
-      let playTimeout;
-      const handleCanPlay = () => {
-        playTimeout = setTimeout(() => {
-          showPlayAudioPrompt(true);
-        }, 1500);
-      };
-      const handlePlay = () => {
-        clearTimeout(playTimeout);
-      };
-      audioEl.current.addEventListener('canplay', handleCanPlay);
-      audioEl.current.addEventListener('play', handlePlay);
-    */
 
     useEffect(() => {
     if (!participant?.audioTrack || !audioRef.current || participant?.local) return;
@@ -35,6 +16,29 @@ export const AudioItem = ({participant}) => {
   }, [participant]);
 
 
+  useEffect(() => {
+    // On iOS safari, when headphones are disconnected, all audio elements are paused.
+    // This means that when a user disconnects their headphones, that user will not
+    // be able to hear any other users until they mute/unmute their mics.
+    // To fix that, we call `play` on each audio track on all devicechange events.
+    if (audioRef.currenet) {
+      return false;
+    }
+    const startPlayingTrack = () => {
+      audioRef.current?.play();
+    };
+
+    navigator.mediaDevices.addEventListener(
+      'devicechange',
+      startPlayingTrack
+    );
+
+    return () =>
+      navigator.mediaDevices.removeEventListener(
+        'devicechange',
+        startPlayingTrack
+      );
+  }, [audioRef]);
 
     return (<>
             <audio

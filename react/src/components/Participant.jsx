@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import styled from "styled-components";
 import { useCallState } from "../CallProvider";
 import { LISTENER, MOD, SPEAKER } from "../App";
@@ -34,7 +34,6 @@ const Participant = ({ participant, local, modCount }) => {
     leaveCall,
     endCall,
   } = useCallState();
-  const audioRef = useRef(null);
   const { ref, isVisible, setIsVisible } = useClickAway(false);
 
   const name = displayName(participant?.user_name);
@@ -174,62 +173,6 @@ const Participant = ({ participant, local, modCount }) => {
     raiseHand,
   ]);
 
-  useEffect(() => {
-    if (!participant?.audioTrack || !audioRef.current) return;
-    // sanity check to make sure this is an audio track
-    if (
-      participant?.audioTrack?.track &&
-      !participant?.audioTrack?.track?.kind === "audio"
-    )
-      return;
-    // don't play the local audio track (echo!)
-    if (participant?.local) return;
-    // set the audio source for everyone else
-
-    /**
-      Note: Safari will block the autoplay of audio by default.
-
-      Improvement: implement a timeout to check if audio stream is playing
-      and prompt the user if not, e.g:
-      
-      let playTimeout;
-      const handleCanPlay = () => {
-        playTimeout = setTimeout(() => {
-          showPlayAudioPrompt(true);
-        }, 1500);
-      };
-      const handlePlay = () => {
-        clearTimeout(playTimeout);
-      };
-      audioEl.current.addEventListener('canplay', handleCanPlay);
-      audioEl.current.addEventListener('play', handlePlay);
-     */
-    audioRef.current.srcObject = new MediaStream([participant?.audioTrack]);
-  }, [participant?.audioTrack, participant?.local]);
-
-  useEffect(() => {
-    // On iOS safari, when headphones are disconnected, all audio elements are paused.
-    // This means that when a user disconnects their headphones, that user will not
-    // be able to hear any other users until they mute/unmute their mics.
-    // To fix that, we call `play` on each audio track on all devicechange events.
-
-    if (!audioRef.current) {
-      return false;
-    }
-
-    const startPlayingTrack = () => {
-      audioRef.current?.play();
-    };
-    navigator.mediaDevices.addEventListener("devicechange", startPlayingTrack);
-
-    return () => {
-      navigator.mediaDevices.removeEventListener(
-        "devicechange",
-        startPlayingTrack
-      );
-    };
-  }, [audioRef]);
-
   const showMoreMenu = useMemo(
     () => getAccountType(local?.user_name) === MOD || participant?.local,
     [getAccountType, local, participant]
@@ -261,14 +204,6 @@ const Participant = ({ participant, local, modCount }) => {
         <MenuContainer ref={ref}>
           <Menu options={menuOptions} setIsVisible={setIsVisible} />
         </MenuContainer>
-      )}
-      {participant?.audioTrack && (
-        <audio
-          autoPlay
-          playsInline
-          id={`audio-${participant.user_id}`}
-          ref={audioRef}
-        />
       )}
     </Container>
   );
@@ -333,4 +268,4 @@ const MenuContainer = styled.div`
   z-index: 10;
 `;
 
-export default Participant; // React.memo(Participant, (p, n) => p.participant?.id === n.participant?.id);
+export default Participant; 
