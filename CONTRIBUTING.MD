@@ -36,7 +36,7 @@ Today we work off two main issue templates: _bug reports_ and _demo/feature requ
   Before creating a new bug report, please do two things:
 
   1. If you want to report a bug you experienced while on a Daily call, try out these [troubleshooting tips](https://help.daily.co/en/articles/2303117-top-troubleshooting-tips) to see if that takes care of the bug.
-  2. If you're still seeing the error, check to see if somebody else has [already filed the issue](https://github.com/daily-co/daily-demos/issues) before creating a new one.
+  2. If you're still seeing the error, check to see if somebody else has [already filed the issue](https://github.com/daily-demos/party-line/issues) before creating a new one.
 
   If you've done those two things and need to create an issue, we'll ask you to tell us:
 
