@@ -18,6 +18,7 @@ import {
   useCallState,
 } from '../contexts/CallProvider';
 import theme from './theme';
+import Header from './Header';
 
 const AppContent = () => {
   const {view} = useCallState();
@@ -36,17 +37,7 @@ const AppContent = () => {
       <ScrollView>
         <StatusBar barStyle="dark-content" />
         <View style={styles.wrapper}>
-          <View style={styles.header}>
-            <View style={styles.headerTop}>
-              <Text style={styles.title}>Party line</Text>
-              <Image
-                source={require('./icons/logo.png')}
-                style={styles.logo}
-                alt="logo"
-              />
-            </View>
-            <Text style={styles.smallText}>An audio API demo from Daily</Text>
-          </View>
+          <Header />
           {view === PREJOIN && (
             <PreJoinRoom handleLinkPress={handleLinkPress} />
           )}
