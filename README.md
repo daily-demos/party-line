@@ -13,15 +13,3 @@ Or deploy React and serverless parts instantly with the following button:
 [![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/party-line)
 
 For a detailed overview, read our blog post on [building an audio-only app in a weekend.](https://www.daily.co/blog/p/6cf7dfd2-8214-456b-a495-2a089a3a89c7/)
-
----
-
-Special thanks to our main contributors 👏:
-
-- [Jess Mitchell](https://github.com/jessmitch42)
-- [Kimberlee Johnson](https://github.com/kimberleejohnson)
-- [Kwindla Hultman Kramer](https://github.com/kwindla)
-- [Mohamed Moubarak](https://github.com/moubarak)
-- [Phil Miller](https://github.com/philmillman)
-- [Stephen Meszaros](https://github.com/stephenmeszaros)
-- [Vincent Esche](https://github.com/regexident)
