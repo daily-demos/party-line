@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  Image,
-  Linking,
-} from 'react-native';
+import {StyleSheet, ScrollView, View, StatusBar, Linking} from 'react-native';
 import InCall from './InCall';
 import PreJoinRoom from './PreJoinRoom';
 import Tray from './Tray';
@@ -24,7 +16,7 @@ const AppContent = () => {
   const {view} = useCallState();
 
   const handleLinkPress = async () => {
-    const url = 'https://docs.daily.co/docs/reference-docs';
+    const url = 'https://docs.daily.co/reference';
     const supported = await Linking.canOpenURL(url);
 
     if (supported) {
@@ -68,31 +60,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: 0,
     marginHorizontal: 'auto',
-  },
-  header: {
-    paddingHorizontal: 24,
-  },
-  headerTop: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-  },
-  title: {
-    fontSize: theme.fontSize.xxlarge,
-    marginHorizontal: 0,
-    color: theme.colors.blueDark,
-    fontWeight: '600',
-  },
-  logo: {
-    height: 24,
-  },
-  smallText: {
-    fontSize: theme.fontSize.large,
-    color: theme.colors.greyDark,
-    fontWeight: '400',
-    marginTop: 8,
-    marginBottom: 24,
-    marginHorizontal: 0,
   },
 });
 
