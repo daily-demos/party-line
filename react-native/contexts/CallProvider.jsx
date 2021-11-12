@@ -86,7 +86,7 @@ export const CallProvider = ({children}) => {
       // create a token for new moderators
       newToken = await createToken(room?.name);
     }
-    const call = Daily.createCallObject();
+    const call = Daily.createCallObject({videoSource: false});
 
     const options = {
       // CHANGE THIS TO YOUR DAILY DOMAIN
