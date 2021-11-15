@@ -30,7 +30,7 @@ const PreJoinRoom = ({handleLinkPress}) => {
       if (roomName?.trim()?.length) {
         name = roomName;
         /**
-         * We track the account type but appending it to the username.
+         * We track the account type by appending it to the username.
          * This is a quick solution for a demo; not a production-worthy solution!
          */
         userName = `${userName}_${LISTENER}`;
@@ -43,6 +43,7 @@ const PreJoinRoom = ({handleLinkPress}) => {
   );
 
   useEffect(() => {
+    // Reset loading state when there's an error
     if (error) {
       setSubmitting(false);
     }
