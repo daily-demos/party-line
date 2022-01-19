@@ -26,7 +26,7 @@ const AppContent = () => {
         {view === INCALL && <InCall />}
         <Link
           center={view === INCALL}
-          href="https://docs.daily.co/docs/reference-docs"
+          href="https://docs.daily.co/guides/demos#party-line-a-multiplatform-audio-only-app"
           target="_blank"
           rel="noopener noreferrer"
         >
