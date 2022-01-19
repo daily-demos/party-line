@@ -1,6 +1,6 @@
 # Party line: An audio-only demo for Android
 
-## Built by and with [Daily](https://docs.daily.co/docs/reference-docs)
+## Built by and with [Daily](https://docs.daily.co/reference)
 
 ---
 
