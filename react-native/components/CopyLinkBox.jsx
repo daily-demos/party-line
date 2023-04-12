@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {StyleSheet, Pressable, View, Text, Platform} from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
+import Clipboard from '@react-native-community/clipboard';
 import theme from './theme';
 
 const CopyLinkBox = ({room}) => {
